@@ -591,10 +591,10 @@ function render() {
   const se = Object.entries(tE).map(([id,val])=>({id,val,e:equipes.find(x=>x.id===id)})).filter(x=>x.e).sort((a,b)=>b.val-a.val);
 
   document.getElementById('top5-equipes').innerHTML = se.length
-    ? se.slice(0,5).map((x,i)=>`<div class="top5-item">
+    ? se.slice(0,5).map((x,i)=>`<div class="top5-item" style="${topBg[i]||''}">
         <span style="font-size:${i<3?'22':'18'}px;flex-shrink:0;width:26px;text-align:center">${medals[i]||i+1}</span>
         <span class="top5-name">${x.e.nome}</span>
-        <span class="top5-value">R$ ${x.val.toLocaleString('pt-BR')}</span>
+        <span class="top5-value" style="color:${i===0?'#FFB800':i===1?'#C0C0C0':i===2?'#CD7F32':'var(--text)'}">R$ ${x.val.toLocaleString('pt-BR')}</span>
       </div>`).join('')
     : '<div class="empty-state">Sem dados ainda</div>';
 
