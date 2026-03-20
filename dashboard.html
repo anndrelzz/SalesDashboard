@@ -20,31 +20,6 @@
   html, body { width:100%; height:100%; background:var(--black); color:var(--text); font-family:'Barlow',sans-serif; overflow:hidden; }
   body { display:flex; flex-direction:column; height:100vh; }
 
-  /* LOGIN */
-  #login-screen { position:fixed; inset:0; background:var(--black); display:flex; align-items:center; justify-content:center; z-index:9999; }
-  #login-screen.hidden { display:none; }
-  .login-box { width:360px; background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--red); border-radius:14px; padding:40px 36px; display:flex; flex-direction:column; gap:20px; }
-  .login-logo { display:flex; justify-content:center; align-items:center; }
-  .login-logo svg { height:70px; width:auto; }
-  .login-subtitle { text-align:center; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin-top:-12px; }
-  .login-fields { display:flex; flex-direction:column; gap:14px; }
-  .login-field { display:flex; flex-direction:column; gap:6px; }
-  .login-label { font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); }
-  .login-input { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px 14px; color:var(--text); font-family:'Barlow',sans-serif; font-size:15px; outline:none; transition:border-color .15s; }
-  .login-input:focus { border-color:var(--border-red); background:var(--surface3); }
-  .login-btn { width:100%; padding:13px; background:var(--red); color:#fff; border:none; border-radius:8px; font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:background .15s; margin-top:4px; }
-  .login-btn:hover { background:#FF1A24; }
-  .login-error { text-align:center; font-size:12px; font-weight:600; color:#EF4444; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:7px; padding:10px; display:none; }
-  .login-error.visible { display:block; }
-  .login-footer { text-align:center; font-size:11px; color:var(--text-dim); }
-
-  /* LOADER */
-  #db-loading { position:fixed; inset:0; background:var(--black); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; z-index:8888; }
-  #db-loading.hidden { display:none; }
-  .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--red); border-radius:50%; animation:spin .7s linear infinite; }
-  @keyframes spin { to { transform:rotate(360deg); } }
-  .db-loading-text { font-family:'Bebas Neue',sans-serif; font-size:14px; letter-spacing:3px; color:var(--text-muted); }
-
   /* NAVBAR */
   nav { background:var(--surface); border-bottom:1px solid var(--border-red); padding:0 20px; display:flex; align-items:center; gap:14px; height:88px; position:relative; z-index:10; flex-shrink:0; }
   nav::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--red) 0%,transparent 100%); }
@@ -53,7 +28,7 @@
   .nav-meta-card { background:var(--surface2); border:1px solid var(--border-red); border-radius:10px; padding:8px 14px; display:flex; flex-direction:column; gap:2px; min-width:160px; flex-shrink:0; }
   .nav-meta-label { font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); }
   .nav-meta-value { font-family:'Bebas Neue',sans-serif; font-size:20px; color:var(--red); letter-spacing:1px; }
-  .nav-progress-wrap { flex:1; max-width:380px; }
+  .nav-progress-wrap { flex:1; max-width:300px; }
   .nav-progress-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
   .nav-progress-label { font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); }
   .nav-progress-pct { font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--red); }
@@ -76,6 +51,30 @@
   .market-item-change.down { color:var(--red); }
   .market-loading { font-size:10px; color:var(--text-dim); letter-spacing:1px; }
 
+  /* RESTANTE DO CSS IGUAL AO ORIGINAL... */
+  #login-screen { position:fixed; inset:0; background:var(--black); display:flex; align-items:center; justify-content:center; z-index:9999; }
+  #login-screen.hidden { display:none; }
+  .login-box { width:360px; background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--red); border-radius:14px; padding:40px 36px; display:flex; flex-direction:column; gap:20px; }
+  .login-logo { display:flex; justify-content:center; align-items:center; }
+  .login-logo svg { height:70px; width:auto; }
+  .login-subtitle { text-align:center; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin-top:-12px; }
+  .login-fields { display:flex; flex-direction:column; gap:14px; }
+  .login-field { display:flex; flex-direction:column; gap:6px; }
+  .login-label { font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); }
+  .login-input { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px 14px; color:var(--text); font-family:'Barlow',sans-serif; font-size:15px; outline:none; transition:border-color .15s; }
+  .login-input:focus { border-color:var(--border-red); background:var(--surface3); }
+  .login-btn { width:100%; padding:13px; background:var(--red); color:#fff; border:none; border-radius:8px; font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:background .15s; margin-top:4px; }
+  .login-btn:hover { background:#FF1A24; }
+  .login-error { text-align:center; font-size:12px; font-weight:600; color:#EF4444; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:7px; padding:10px; display:none; }
+  .login-error.visible { display:block; }
+  .login-footer { text-align:center; font-size:11px; color:var(--text-dim); }
+
+  #db-loading { position:fixed; inset:0; background:var(--black); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; z-index:8888; }
+  #db-loading.hidden { display:none; }
+  .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--red); border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .db-loading-text { font-family:'Bebas Neue',sans-serif; font-size:14px; letter-spacing:3px; color:var(--text-muted); }
+
   .nav-clock { text-align:center; flex-shrink:0; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 16px; display:flex; flex-direction:column; justify-content:center; gap:3px; }
   .clock-time { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:3px; color:var(--text); line-height:1; }
   .clock-date { font-size:9px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
@@ -84,13 +83,11 @@
   .lock-btn svg { width:15px; height:15px; stroke:var(--text-muted); transition:stroke .15s; }
   .lock-btn:hover svg { stroke:var(--red); }
 
-  /* TABS */
   .tabs-bar { display:flex; background:var(--surface); border-bottom:1px solid var(--border); padding:0 28px; flex-shrink:0; }
   .tab-btn { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); background:none; border:none; border-bottom:3px solid transparent; padding:12px 24px; cursor:pointer; transition:all .2s; }
   .tab-btn.active { color:var(--text); border-bottom-color:var(--red); }
   .tab-btn:hover:not(.active) { color:var(--text); }
 
-  /* MAIN */
   main { overflow:hidden; position:relative; flex:1; min-height:0; }
   .tab-panel { display:none; height:100%; padding:20px 24px; gap:16px; }
   .tab-panel.active { display:grid; }
@@ -248,27 +245,92 @@
 // ================================================================
 const SUPABASE_URL = 'https://hgvhjccsjuvyclalxcai.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhndmhqY2NzanV2eWNsYWx4Y2FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDQxMTksImV4cCI6MjA4OTUyMDExOX0.8RfTEfF4NM_1amwWZirTxshnYeCKtxR28cDOFuWknAY';
+const HG_KEY = '2a85befd';
 // ================================================================
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let state = { meta:0, vendedores:[], equipes:[], vendas:[] };
 let chartV = null, chartE = null;
 
-// ─── LOGIN SUPABASE AUTH ───
+// --- MERCADO FINANCEIRO (SOLUÇÃO FIXA) ---
+
+// 1. Definir a função de callback no escopo global (window) primeiro
+window.atualizarCardsMercado = function(data) {
+  try {
+    const fin = data.results;
+    const items = [];
+
+    // IBOVESPA
+    if (fin.stocks && fin.stocks.IBOVESPA) {
+      items.push(renderMarketItem("IBOVESPA", fin.stocks.IBOVESPA.points.toLocaleString('pt-BR'), fin.stocks.IBOVESPA.variation));
+    }
+
+    // NASDAQ
+    if (fin.stocks && fin.stocks.NASDAQ) {
+      items.push(renderMarketItem("NASDAQ", fin.stocks.NASDAQ.points.toLocaleString('pt-BR'), fin.stocks.NASDAQ.variation));
+    }
+
+    // DÓLAR
+    if (fin.currencies && fin.currencies.USD) {
+      items.push(renderMarketItem("DÓLAR", "R$ " + fin.currencies.USD.buy.toFixed(2).replace('.',','), fin.currencies.USD.variation));
+    }
+
+    // EURO
+    if (fin.currencies && fin.currencies.EUR) {
+      items.push(renderMarketItem("EURO", "R$ " + fin.currencies.EUR.buy.toFixed(2).replace('.',','), fin.currencies.EUR.variation));
+    }
+
+    // TAXAS
+    if (fin.taxes && fin.taxes.length > 0) {
+      items.push(`<div class="market-item">
+        <span class="market-item-name">CDI</span>
+        <span class="market-item-value">${fin.taxes[0].cdi.toFixed(2).replace('.',',')}%</span>
+      </div>`);
+      items.push(`<div class="market-item">
+        <span class="market-item-name">SELIC</span>
+        <span class="market-item-value">${fin.taxes[0].selic.toFixed(2).replace('.',',')}%</span>
+      </div>`);
+    }
+
+    document.getElementById('market-items').innerHTML = items.length > 0 ? items.join('') : '<span class="market-loading">Sem dados</span>';
+  } catch(e) {
+    console.error("Erro no mercado:", e);
+    document.getElementById('market-items').innerHTML = '<span class="market-loading">Indisponível</span>';
+  }
+};
+
+function renderMarketItem(nome, valor, variacao) {
+  const cls = variacao >= 0 ? 'up' : 'down';
+  const sinal = variacao >= 0 ? '+' : '';
+  return `<div class="market-item">
+    <span class="market-item-name">${nome}</span>
+    <span class="market-item-value">${valor}</span>
+    <span class="market-item-change ${cls}">${sinal}${variacao.toFixed(2)}%</span>
+  </div>`;
+}
+
+function carregarMercado() {
+  const script = document.createElement('script');
+  script.src = `https://api.hgbrasil.com/finance?format=jsonp&callback=atualizarCardsMercado&key=${HG_KEY}`;
+  document.body.appendChild(script);
+  // Remove o script após carregar para não poluir o DOM
+  script.onload = () => document.body.removeChild(script);
+}
+
+// Inicia mercado
+carregarMercado();
+setInterval(carregarMercado, 5 * 60 * 1000);
+
+// --- RESTANTE DA LÓGICA DO DASHBOARD ---
+
 async function tentarLogin() {
   const email = document.getElementById('login-user').value.trim();
   const pass  = document.getElementById('login-pass').value;
   const err   = document.getElementById('login-error');
   const btn   = document.querySelector('.login-btn');
-
-  btn.textContent = 'Entrando...';
-  btn.disabled = true;
-
+  btn.textContent = 'Entrando...'; btn.disabled = true;
   const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-
-  btn.textContent = 'Entrar';
-  btn.disabled = false;
-
+  btn.textContent = 'Entrar'; btn.disabled = false;
   if (error) {
     err.classList.add('visible');
     document.getElementById('login-pass').value = '';
@@ -281,7 +343,16 @@ async function tentarLogin() {
   }
 }
 
-// Verifica sessão existente ao carregar
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock-time').textContent = [now.getHours(),now.getMinutes(),now.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+  const dias  = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  document.getElementById('clock-date').textContent = `${dias[now.getDay()]}, ${now.getDate()} ${meses[now.getMonth()]} ${now.getFullYear()}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
@@ -294,118 +365,9 @@ async function tentarLogin() {
   }
 })();
 
-// ─── CLOCK ───
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock-time').textContent =
-    [now.getHours(),now.getMinutes(),now.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
-  const dias  = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  document.getElementById('clock-date').textContent =
-    `${dias[now.getDay()]}, ${now.getDate()} ${meses[now.getMonth()]} ${now.getFullYear()}`;
-}
-setInterval(updateClock, 1000);
-// Recarrega a página a cada 5 minutos
-setInterval(() => location.reload(), 5 * 60 * 1000);
-
-// ─── MERCADO FINANCEIRO (HG Brasil) ───
-const HG_KEY = '2a85befd';
-
-async function carregarMercado() {
-  try {
-    const res = await fetch(`https://api.hgbrasil.com/finance/stock_price?key=${HG_KEY}&symbol=ibovespa,petr4,vale3,itub4,bbdc4,abev3&format=json`);
-    const resF = await fetch(`https://api.hgbrasil.com/finance?key=${HG_KEY}&format=json&fields=only_results,currencies,taxes`);
-
-    const stockJson = await res.json();
-    const finJson   = await resF.json();
-
-    const stocks = stockJson.results;
-    const fin    = finJson.results;
-
-    const items = [];
-
-    // IBOVESPA
-    const ibov = stocks?.IBOVESPA;
-    if (ibov) {
-      const chg = Number(ibov.change_percent).toFixed(2);
-      const cls = chg >= 0 ? 'up' : 'down';
-      const sinal = chg >= 0 ? '+' : '';
-      items.push(`<div class="market-item">
-        <span class="market-item-name">IBOVESPA</span>
-        <span class="market-item-value">${Number(ibov.price).toLocaleString('pt-BR',{maximumFractionDigits:0})}</span>
-        <span class="market-item-change ${cls}">${sinal}${chg}%</span>
-      </div>`);
-    }
-
-    // DÓLAR
-    const usd = fin?.currencies?.USD;
-    if (usd) {
-      const chg = Number(usd.variation).toFixed(2);
-      const cls = chg >= 0 ? 'up' : 'down';
-      const sinal = chg >= 0 ? '+' : '';
-      items.push(`<div class="market-item">
-        <span class="market-item-name">DÓLAR</span>
-        <span class="market-item-value">R$ ${Number(usd.buy).toFixed(2).replace('.',',')}</span>
-        <span class="market-item-change ${cls}">${sinal}${chg}%</span>
-      </div>`);
-    }
-
-    // EURO
-    const eur = fin?.currencies?.EUR;
-    if (eur) {
-      const chg = Number(eur.variation).toFixed(2);
-      const cls = chg >= 0 ? 'up' : 'down';
-      const sinal = chg >= 0 ? '+' : '';
-      items.push(`<div class="market-item">
-        <span class="market-item-name">EURO</span>
-        <span class="market-item-value">R$ ${Number(eur.buy).toFixed(2).replace('.',',')}</span>
-        <span class="market-item-change ${cls}">${sinal}${chg}%</span>
-      </div>`);
-    }
-
-    // CDI e SELIC
-    const taxes = Array.isArray(fin?.taxes) ? fin.taxes[0] : null;
-    if (taxes?.cdi) items.push(`<div class="market-item">
-      <span class="market-item-name">CDI</span>
-      <span class="market-item-value">${Number(taxes.cdi).toFixed(2).replace('.',',')}%</span>
-    </div>`);
-    if (taxes?.selic) items.push(`<div class="market-item">
-      <span class="market-item-name">SELIC</span>
-      <span class="market-item-value">${Number(taxes.selic).toFixed(2).replace('.',',')}%</span>
-    </div>`);
-
-    // AÇÕES
-    ['PETR4','VALE3','ITUB4','BBDC4','ABEV3'].forEach(ticker => {
-      const a = stocks?.[ticker];
-      if (!a) return;
-      const chg = Number(a.change_percent).toFixed(2);
-      const cls = chg >= 0 ? 'up' : 'down';
-      const sinal = chg >= 0 ? '+' : '';
-      items.push(`<div class="market-item">
-        <span class="market-item-name">${ticker}</span>
-        <span class="market-item-value">R$ ${Number(a.price).toFixed(2).replace('.',',')}</span>
-        <span class="market-item-change ${cls}">${sinal}${chg}%</span>
-      </div>`);
-    });
-
-    document.getElementById('market-items').innerHTML = items.length
-      ? items.join('')
-      : '<span class="market-loading">Indisponível</span>';
-
-  } catch(e) {
-    document.getElementById('market-items').innerHTML = '<span class="market-loading">Indisponível</span>';
-  }
-}
-
-carregarMercado();
-setInterval(carregarMercado, 5 * 60 * 1000);
-updateClock();
-
-// ─── HELPERS ───
 const fmt = v => 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
 const getMes = () => { const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`; };
 
-// ─── CARREGAR DADOS ───
 async function carregarDados() {
   const mes = getMes();
   const [r1, r2, r3, r4] = await Promise.all([
@@ -420,7 +382,6 @@ async function carregarDados() {
   state.vendas     = r4.data || [];
 }
 
-// ─── CHARTS ───
 const chartOpts = {
   responsive:true, maintainAspectRatio:false,
   plugins:{ legend:{display:false}, tooltip:{
@@ -460,7 +421,6 @@ function renderChartEquipes(labels, values) {
   }]}, options:chartOpts });
 }
 
-// ─── RENDER ───
 function render() {
   const { meta, vendedores, equipes, vendas } = state;
   const totV = {}, totE = {};
@@ -469,97 +429,47 @@ function render() {
     const vend = vendedores.find(x=>x.id===v.vendedor_id);
     if (vend?.equipe_id) totE[vend.equipe_id] = (totE[vend.equipe_id]||0) + Number(v.valor);
   });
-
   const totalGeral = Object.values(totV).reduce((a,b)=>a+b,0);
   const pct = meta>0 ? Math.min(100,Math.round(totalGeral/meta*100)) : 0;
-
   document.getElementById('nav-meta-value').textContent = fmt(meta);
   document.getElementById('nav-pct').textContent = pct+'%';
   document.getElementById('nav-bar').style.width = pct+'%';
   document.getElementById('total-vendedores').textContent = fmt(totalGeral);
   document.getElementById('total-equipes').textContent = fmt(Object.values(totE).reduce((a,b)=>a+b,0));
-
-  const sorted = Object.entries(totV)
-    .map(([id,val])=>({id,val,vend:vendedores.find(x=>x.id===id)}))
-    .filter(x=>x.vend).sort((a,b)=>b.val-a.val);
-
+  const sorted = Object.entries(totV).map(([id,val])=>({id,val,vend:vendedores.find(x=>x.id===id)})).filter(x=>x.vend).sort((a,b)=>b.val-a.val);
   const medals = ['🥇','🥈','🥉','4','5'];
-  const ri = ['rank-1','rank-2','rank-3','rank-other','rank-other'];
   const top5El = document.getElementById('top5-vendedores');
   top5El.innerHTML = sorted.length ? sorted.slice(0,5).map((item,i)=>{
-    const medalIcon = i < 3
-      ? `<span style="font-size:22px;line-height:1;flex-shrink:0">${medals[i]}</span>`
-      : `<span class="rank-badge rank-other">${medals[i]}</span>`;
-    return `<div class="top5-item">
-      ${medalIcon}
-      <span class="top5-name">${item.vend.nome}</span>
-      <span class="top5-value">${fmt(item.val)}</span>
-    </div>`;
+    const medalIcon = i < 3 ? `<span style="font-size:22px;line-height:1;flex-shrink:0">${medals[i]}</span>` : `<span class="rank-badge rank-other">${medals[i]}</span>`;
+    return `<div class="top5-item"> ${medalIcon} <span class="top5-name">${item.vend.nome}</span> <span class="top5-value">${fmt(item.val)}</span> </div>`;
   }).join('') : `<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">Sem dados ainda</div></div>`;
-
   const top15 = sorted.slice(0,15);
   if (top15.length) renderChartVendedores(top15.map(x=>x.vend.nome.split(' ')[0]), top15.map(x=>x.val));
-
-  const sortedE = Object.entries(totE)
-    .map(([id,val])=>({id,val,eq:equipes.find(x=>x.id===id)}))
-    .filter(x=>x.eq).sort((a,b)=>b.val-a.val);
-
+  const sortedE = Object.entries(totE).map(([id,val])=>({id,val,eq:equipes.find(x=>x.id===id)})).filter(x=>x.eq).sort((a,b)=>b.val-a.val);
   const top5EqEl = document.getElementById('top5-equipes');
   top5EqEl.innerHTML = sortedE.length ? sortedE.slice(0,5).map((item,i)=>{
-    const medalIcon = i < 3
-      ? `<span style="font-size:22px;line-height:1;flex-shrink:0">${medals[i]}</span>`
-      : `<span class="rank-badge rank-other">${medals[i]}</span>`;
-    return `<div class="top5-item">
-      ${medalIcon}
-      <span class="top5-name">${item.eq.nome}</span>
-      <span class="top5-value">${fmt(item.val)}</span>
-    </div>`;
+    const medalIcon = i < 3 ? `<span style="font-size:22px;line-height:1;flex-shrink:0">${medals[i]}</span>` : `<span class="rank-badge rank-other">${medals[i]}</span>`;
+    return `<div class="top5-item"> ${medalIcon} <span class="top5-name">${item.eq.nome}</span> <span class="top5-value">${fmt(item.val)}</span> </div>`;
   }).join('') : `<div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-text">Sem dados ainda</div></div>`;
-
   if (sortedE.length) renderChartEquipes(sortedE.map(x=>x.eq.nome), sortedE.map(x=>x.val));
 }
 
-// ─── TABS ───
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(tab)));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+tab));
 }
 
-// ─── REALTIME ───
 let realtimeIniciado = false;
 function iniciarRealtime() {
   if (realtimeIniciado) return;
   realtimeIniciado = true;
-  sb.channel('realtime-dashboard')
-    .on('postgres_changes',{event:'*',schema:'public',table:'vendas'},   async()=>{await carregarDados();render();})
-    .on('postgres_changes',{event:'*',schema:'public',table:'metas'},    async()=>{await carregarDados();render();})
-    .on('postgres_changes',{event:'*',schema:'public',table:'vendedores'},async()=>{await carregarDados();render();})
-    .on('postgres_changes',{event:'*',schema:'public',table:'equipes'},  async()=>{await carregarDados();render();})
-    .subscribe();
+  sb.channel('realtime-dashboard').on('postgres_changes',{event:'*',schema:'public',table:'vendas'},async()=>{await carregarDados();render();}).on('postgres_changes',{event:'*',schema:'public',table:'metas'},async()=>{await carregarDados();render();}).on('postgres_changes',{event:'*',schema:'public',table:'vendedores'},async()=>{await carregarDados();render();}).on('postgres_changes',{event:'*',schema:'public',table:'equipes'},async()=>{await carregarDados();render();}).subscribe();
 }
 
-// ─── INICIAR ───
 async function iniciar() {
   const loader = document.getElementById('db-loading');
   loader.classList.remove('hidden');
-  try {
-    await carregarDados();
-    render();
-    iniciarRealtime();
-  } catch(e) {
-    console.error('Erro ao carregar dados:', e);
-  } finally {
-    loader.classList.add('hidden');
-  }
-}
-
-// Verifica sessão ao carregar página
-if (!sessionStorage.getItem(SESSION_KEY)) {
-  document.getElementById('db-loading').classList.add('hidden');
-  setTimeout(() => document.getElementById('login-user').focus(), 100);
-} else {
-  document.getElementById('login-screen').classList.add('hidden');
-  iniciar();
+  try { await carregarDados(); render(); iniciarRealtime(); } catch(e) { console.error('Erro:', e); } finally { loader.classList.add('hidden'); }
 }
 </script>
 </body>
