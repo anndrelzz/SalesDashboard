@@ -62,9 +62,10 @@
   .progress-bar::after { content:''; position:absolute; right:-1px; top:-2px; bottom:-2px; width:3px; background:#fff; border-radius:2px; box-shadow:0 0 8px var(--red); }
 
   /* MARKET CARD */
-  .nav-market-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 14px; display:flex; flex-direction:column; gap:6px; flex-shrink:0; min-width:300px; }
+  .nav-market-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 14px; display:flex; flex-direction:column; gap:6px; flex-shrink:0; min-width:300px; max-width:420px; }
   .market-label { font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); }
-  .market-items { display:flex; gap:14px; flex-wrap:wrap; }
+  .market-items { display:flex; gap:14px; overflow-x:auto; scrollbar-width:none; }
+  .market-items::-webkit-scrollbar { display:none; }
   .market-item { display:flex; flex-direction:column; gap:1px; }
   .market-item-name { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); }
   .market-item-value { font-family:'Bebas Neue',sans-serif; font-size:16px; color:var(--text); letter-spacing:0.5px; line-height:1; }
@@ -306,13 +307,15 @@ setInterval(() => location.reload(), 5 * 60 * 1000);
 // ─── MERCADO FINANCEIRO (AwesomeAPI) ───
 async function carregarMercado() {
   try {
-    const [resCambio, resIbov] = await Promise.all([
+    const [resCambio, resIbov, resAcoes] = await Promise.all([
       fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL'),
-      fetch('https://brapi.dev/api/quote/^BVSP?token=demo')
+      fetch('https://brapi.dev/api/quote/^BVSP?token=demo'),
+      fetch('https://brapi.dev/api/quote/PETR4,VALE3,ITUB4,BBDC4,ABEV3?token=demo')
     ]);
 
-    const cambio = await resCambio.json();
+    const cambio   = await resCambio.json();
     const ibovData = await resIbov.json();
+    const acoesData = await resAcoes.json();
 
     const items = [];
 
@@ -355,7 +358,7 @@ async function carregarMercado() {
       </div>`);
     }
 
-    // CDI e SELIC (fixos — atualizados manualmente quando o BACEN mudar)
+    // CDI e SELIC (fixos — atualize quando o BACEN mudar)
     items.push(`<div class="market-item">
       <span class="market-item-name">CDI</span>
       <span class="market-item-value">15,00%</span>
@@ -364,6 +367,19 @@ async function carregarMercado() {
       <span class="market-item-name">SELIC</span>
       <span class="market-item-value">15,00%</span>
     </div>`);
+
+    // AÇÕES
+    const acoes = acoesData?.results || [];
+    acoes.forEach(acao => {
+      const chg = Number(acao.regularMarketChangePercent).toFixed(2);
+      const cls = chg >= 0 ? 'up' : 'down';
+      const sinal = chg >= 0 ? '+' : '';
+      items.push(`<div class="market-item">
+        <span class="market-item-name">${acao.symbol}</span>
+        <span class="market-item-value">R$ ${Number(acao.regularMarketPrice).toFixed(2).replace('.',',')}</span>
+        <span class="market-item-change ${cls}">${sinal}${chg}%</span>
+      </div>`);
+    });
 
     document.getElementById('market-items').innerHTML = items.length
       ? items.join('')
