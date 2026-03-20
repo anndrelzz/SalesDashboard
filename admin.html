@@ -290,24 +290,17 @@
 
 <script>
 // ================================================================
-// ⚙️  CONFIGURAÇÕES — mesmas do dashboard.html
+// ⚙️  CONFIGURAÇÕES
 // ================================================================
 const SUPABASE_URL = 'https://hgvhjccsjuvyclalxcai.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhndmhqY2NzanV2eWNsYWx4Y2FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDQxMTksImV4cCI6MjA4OTUyMDExOX0.8RfTEfF4NM_1amwWZirTxshnYeCKtxR28cDOFuWknAY';
 // ================================================================
 
-const SESSION_KEY = 'vendamax_dash_auth';
-
-// Verifica sessão — se não logou no dashboard, redireciona
-if (!sessionStorage.getItem(SESSION_KEY)) {
-  window.location.replace('dashboard.html');
-}
-
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let state = { meta:0, vendedores:[], equipes:[], vendas:[] };
 
-function logout() {
-  sessionStorage.removeItem(SESSION_KEY);
+async function logout() {
+  await sb.auth.signOut();
   window.location.replace('dashboard.html');
 }
 
@@ -528,6 +521,19 @@ async function removerEquipe(id) {
 document.getElementById('input-data').value = new Date().toISOString().slice(0,10);
 
 (async () => {
+  // Aguarda até 3s pela sessão do Supabase Auth
+  let session = null;
+  for (let i = 0; i < 6; i++) {
+    const { data } = await sb.auth.getSession();
+    if (data.session) { session = data.session; break; }
+    await new Promise(r => setTimeout(r, 500));
+  }
+
+  if (!session) {
+    window.location.replace('dashboard.html');
+    return;
+  }
+
   await carregarDados();
   document.getElementById('page-loader').classList.add('hidden');
   renderAll();
