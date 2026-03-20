@@ -308,79 +308,82 @@ setInterval(updateClock, 1000);
 // Recarrega a página a cada 5 minutos
 setInterval(() => location.reload(), 5 * 60 * 1000);
 
-// ─── MERCADO FINANCEIRO ───
+// ─── MERCADO FINANCEIRO (HG Brasil) ───
+const HG_KEY = '2a85befd';
+
 async function carregarMercado() {
   try {
-    // AwesomeAPI — sem chave, sem CORS, tudo em uma chamada
-    const [resCambio, resAcoes] = await Promise.all([
-      fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL'),
-      fetch('https://economia.awesomeapi.com.br/json/last/IBOVESPA,PETR4,VALE3,ITUB4,BBDC4,ABEV3')
-    ]);
+    const res = await fetch(`https://api.hgbrasil.com/finance/stock_price?key=${HG_KEY}&symbol=ibovespa,petr4,vale3,itub4,bbdc4,abev3&format=json`);
+    const resF = await fetch(`https://api.hgbrasil.com/finance?key=${HG_KEY}&format=json&fields=only_results,currencies,taxes`);
 
-    const cambio  = await resCambio.json();
-    const acoes   = await resAcoes.json();
+    const stockJson = await res.json();
+    const finJson   = await resF.json();
+
+    const stocks = stockJson.results;
+    const fin    = finJson.results;
 
     const items = [];
 
     // IBOVESPA
-    const ibov = acoes?.IBOVESPA;
+    const ibov = stocks?.IBOVESPA;
     if (ibov) {
-      const chg = Number(ibov.pctChange).toFixed(2);
+      const chg = Number(ibov.change_percent).toFixed(2);
       const cls = chg >= 0 ? 'up' : 'down';
       const sinal = chg >= 0 ? '+' : '';
       items.push(`<div class="market-item">
         <span class="market-item-name">IBOVESPA</span>
-        <span class="market-item-value">${Number(ibov.bid).toLocaleString('pt-BR',{maximumFractionDigits:0})}</span>
+        <span class="market-item-value">${Number(ibov.price).toLocaleString('pt-BR',{maximumFractionDigits:0})}</span>
         <span class="market-item-change ${cls}">${sinal}${chg}%</span>
       </div>`);
     }
 
     // DÓLAR
-    const usd = cambio?.USDBRL;
+    const usd = fin?.currencies?.USD;
     if (usd) {
-      const chg = Number(usd.pctChange).toFixed(2);
+      const chg = Number(usd.variation).toFixed(2);
       const cls = chg >= 0 ? 'up' : 'down';
       const sinal = chg >= 0 ? '+' : '';
       items.push(`<div class="market-item">
         <span class="market-item-name">DÓLAR</span>
-        <span class="market-item-value">R$ ${Number(usd.bid).toFixed(2).replace('.',',')}</span>
+        <span class="market-item-value">R$ ${Number(usd.buy).toFixed(2).replace('.',',')}</span>
         <span class="market-item-change ${cls}">${sinal}${chg}%</span>
       </div>`);
     }
 
     // EURO
-    const eur = cambio?.EURBRL;
+    const eur = fin?.currencies?.EUR;
     if (eur) {
-      const chg = Number(eur.pctChange).toFixed(2);
+      const chg = Number(eur.variation).toFixed(2);
       const cls = chg >= 0 ? 'up' : 'down';
       const sinal = chg >= 0 ? '+' : '';
       items.push(`<div class="market-item">
         <span class="market-item-name">EURO</span>
-        <span class="market-item-value">R$ ${Number(eur.bid).toFixed(2).replace('.',',')}</span>
+        <span class="market-item-value">R$ ${Number(eur.buy).toFixed(2).replace('.',',')}</span>
         <span class="market-item-change ${cls}">${sinal}${chg}%</span>
       </div>`);
     }
 
-    // CDI e SELIC (fixos — atualize quando o BACEN mudar)
-    items.push(`<div class="market-item">
+    // CDI e SELIC
+    const taxes = Array.isArray(fin?.taxes) ? fin.taxes[0] : null;
+    if (taxes?.cdi) items.push(`<div class="market-item">
       <span class="market-item-name">CDI</span>
-      <span class="market-item-value">15,00%</span>
+      <span class="market-item-value">${Number(taxes.cdi).toFixed(2).replace('.',',')}%</span>
     </div>`);
-    items.push(`<div class="market-item">
+    if (taxes?.selic) items.push(`<div class="market-item">
       <span class="market-item-name">SELIC</span>
-      <span class="market-item-value">15,00%</span>
+      <span class="market-item-value">${Number(taxes.selic).toFixed(2).replace('.',',')}%</span>
     </div>`);
 
     // AÇÕES
     ['PETR4','VALE3','ITUB4','BBDC4','ABEV3'].forEach(ticker => {
-      const a = acoes?.[ticker];
+      const a = stocks?.[ticker];
       if (!a) return;
-      const chg = Number(a.pctChange).toFixed(2);
+      const chg = Number(a.change_percent).toFixed(2);
       const cls = chg >= 0 ? 'up' : 'down';
       const sinal = chg >= 0 ? '+' : '';
       items.push(`<div class="market-item">
         <span class="market-item-name">${ticker}</span>
-        <span class="market-item-value">R$ ${Number(a.bid).toFixed(2).replace('.',',')}</span>
+        <span class="market-item-value">R$ ${Number(a.price).toFixed(2).replace('.',',')}</span>
         <span class="market-item-change ${cls}">${sinal}${chg}%</span>
       </div>`);
     });
