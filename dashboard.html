@@ -223,8 +223,8 @@
 const SUPABASE_URL = 'https://hgvhjccsjuvyclalxcai.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_tZP6-UNjJXvNULO92Dxnfw_v54iry1g';
 
-const DASH_USER   = 'adm.america';         // ← altere o usuário
-const DASH_PASS   = 'admamerica2026';  // ← altere a senha
+const DASH_USER   = 'admin';         // ← altere o usuário
+const DASH_PASS   = 'vendamax2026';  // ← altere a senha
 // ================================================================
 
 const SESSION_KEY = 'vendamax_dash_auth';
@@ -392,7 +392,10 @@ function switchTab(tab) {
 }
 
 // ─── REALTIME ───
+let realtimeIniciado = false;
 function iniciarRealtime() {
+  if (realtimeIniciado) return;
+  realtimeIniciado = true;
   sb.channel('realtime-dashboard')
     .on('postgres_changes',{event:'*',schema:'public',table:'vendas'},   async()=>{await carregarDados();render();})
     .on('postgres_changes',{event:'*',schema:'public',table:'metas'},    async()=>{await carregarDados();render();})
@@ -403,11 +406,26 @@ function iniciarRealtime() {
 
 // ─── INICIAR ───
 async function iniciar() {
-  document.getElementById('db-loading').classList.remove('hidden');
-  await carregarDados();
+  const loader = document.getElementById('db-loading');
+  loader.classList.remove('hidden');
+  try {
+    await carregarDados();
+    render();
+    iniciarRealtime();
+  } catch(e) {
+    console.error('Erro ao carregar dados:', e);
+  } finally {
+    loader.classList.add('hidden');
+  }
+}
+
+// Verifica sessão ao carregar página
+if (!sessionStorage.getItem(SESSION_KEY)) {
   document.getElementById('db-loading').classList.add('hidden');
-  render();
-  iniciarRealtime();
+  setTimeout(() => document.getElementById('login-user').focus(), 100);
+} else {
+  document.getElementById('login-screen').classList.add('hidden');
+  iniciar();
 }
 </script>
 </body>
