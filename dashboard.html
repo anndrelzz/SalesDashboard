@@ -308,15 +308,18 @@ const HG_KEY = '2a85befd';
 
 async function carregarMercado() {
   try {
-    const res = await fetch(`https://api.hgbrasil.com/finance?key=${HG_KEY}&format=json`);
+    const res = await fetch(`https://api.hgbrasil.com/finance?key=${HG_KEY}&format=json&array_limit=1&fields=only_results,currencies,stocks,taxes`, {
+      mode: 'cors'
+    });
     const json = await res.json();
     const r = json.results;
 
     const ibov  = r.stocks?.IBOVESPA;
     const dolar = r.currencies?.USD;
     const euro  = r.currencies?.EUR;
-    const cdi   = r.taxes?.find(t => t.date && t.cdi)?.cdi || r.taxes?.[0]?.cdi;
-    const selic = r.taxes?.find(t => t.selic)?.selic || r.taxes?.[0]?.selic;
+    const taxes = Array.isArray(r.taxes) ? r.taxes[0] : null;
+    const cdi   = taxes?.cdi;
+    const selic = taxes?.selic;
 
     const items = [];
 
