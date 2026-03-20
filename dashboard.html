@@ -63,7 +63,7 @@
   .progress-bar::after { content:''; position:absolute; right:-1px; top:-2px; bottom:-2px; width:3px; background:#fff; border-radius:2px; box-shadow:0 0 8px var(--red); }
 
   /* MARKET CARD */
-  .nav-market-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 18px; display:flex; flex-direction:column; gap:8px; flex:1; min-width:0; overflow:hidden; }
+  .nav-market-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 18px; display:flex; flex-direction:column; gap:8px; flex:1; min-width:0; }
   .market-label { font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); }
   .market-items { display:flex; gap:22px; overflow-x:auto; scrollbar-width:none; align-items:flex-start; }
   .market-items::-webkit-scrollbar { display:none; }
@@ -79,7 +79,30 @@
   .market-section-label { font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-dim); align-self:center; writing-mode:vertical-lr; transform:rotate(180deg); }
   .market-loading { font-size:10px; color:var(--text-dim); letter-spacing:1px; }
 
-  .nav-clock { text-align:center; flex-shrink:0; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 22px; display:flex; flex-direction:column; justify-content:center; gap:4px; }
+  .nav-month-select {
+    background: var(--surface2);
+    border: 1px solid var(--border-red);
+    border-radius: 10px;
+    padding: 8px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .nav-month-label { font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); }
+  .nav-month-input {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    width: 130px;
+  }
+  .nav-month-input::-webkit-calendar-picker-indicator { filter: invert(1) opacity(0.5); cursor: pointer; }
   .clock-time { font-family:'Bebas Neue',sans-serif; font-size:38px; letter-spacing:4px; color:var(--text); line-height:1; }
   .clock-date { font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
   .lock-btn { display:flex; align-items:center; justify-content:center; width:36px; height:36px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; cursor:pointer; transition:all .15s; flex-shrink:0; text-decoration:none; }
@@ -178,12 +201,17 @@
   <button class="tab-btn active" onclick="switchTab('vendedores')">Vendedores</button>
   <button class="tab-btn" onclick="switchTab('equipes')">Equipes</button>
   <div style="flex:1"></div>
-  <a href="admin.html" class="lock-btn" title="Painel Admin" style="margin:auto 0">
-    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-    </svg>
-  </a>
+  <div style="display:flex;align-items:center;gap:8px;margin:auto 0">
+    <div class="nav-month-select" style="padding:4px 10px">
+      <input type="month" id="sel-mes" class="nav-month-input" onchange="trocarMes(this.value)">
+    </div>
+    <a href="admin.html" class="lock-btn" title="Painel Admin">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    </a>
+  </div>
 </div>
 
 <main>
@@ -326,10 +354,9 @@ async function carregarMercado() {
 
     items.push(mkDivider());
 
-    // Taxas fixas — atualize manualmente quando o BACEN mudar
+    // Taxas fixas — atualize quando o BACEN mudar
     items.push(mkItem('SELIC', '13,25%', null));
     items.push(mkItem('CDI',   '13,15%', null));
-    items.push(mkItem('IPCA',   '5,06%', null));
 
   } catch(e) {
     console.warn('Mercado indisponível:', e);
@@ -338,9 +365,32 @@ async function carregarMercado() {
   container.innerHTML = items.length ? items.join('') : '<span class="market-loading">Indisponível</span>';
 }
 
+// ─── MÊS SELECIONADO ───
+let mesSelecionado = new Date().toISOString().substring(0,7);
+
+async function trocarMes(val) {
+  if (!val) return;
+  mesSelecionado = val;
+  const loader = document.getElementById('db-loading');
+  loader.classList.remove('hidden');
+  try {
+    const mes = mesSelecionado;
+    const [r1, r2, r3, r4] = await Promise.all([
+      sb.from('equipes').select('*').order('nome'),
+      sb.from('vendedores').select('*').order('nome'),
+      sb.from('metas').select('*').eq('mes', mes).maybeSingle(),
+      sb.from('vendas').select('*').eq('mes', mes)
+    ]);
+    state = { equipes: r1.data||[], vendedores: r2.data||[], meta: r3.data?.valor||0, vendas: r4.data||[] };
+    render();
+  } finally {
+    loader.classList.add('hidden');
+  }
+}
+
 // ─── DADOS ───
 async function carregarDados() {
-  const mes = new Date().toISOString().substring(0,7);
+  const mes = mesSelecionado;
   const [r1, r2, r3, r4] = await Promise.all([
     sb.from('equipes').select('*').order('nome'),
     sb.from('vendedores').select('*').order('nome'),
@@ -385,6 +435,10 @@ function makeGradient(ctx, chartArea) {
 
 // ─── RENDER ───
 function render() {
+  // Destroi charts antes de recriar para evitar dados antigos em cache
+  if (chartV) { chartV.destroy(); chartV = null; }
+  if (chartE) { chartE.destroy(); chartE = null; }
+
   const { meta, vendedores, equipes, vendas } = state;
   const tV = {}, tE = {};
   vendas.forEach(v => {
@@ -461,7 +515,7 @@ function render() {
               align: 'center',
               clamp: true,
               color: '#FFFFFF',
-              font: { family: "'Bebas Neue'", weight: '700', size: 15 },
+              font: { family: "'Bebas Neue'", weight: '700', size: 20 },
               textShadowColor: 'rgba(0,0,0,1)',
               textShadowBlur: 8,
               formatter: (v, c) => {
@@ -560,6 +614,9 @@ function switchTab(t) {
 
 // ─── INICIAR ───
 async function iniciar() {
+  // Define o mês atual no seletor
+  document.getElementById('sel-mes').value = mesSelecionado;
+
   document.getElementById('db-loading').classList.remove('hidden');
   try {
     await carregarDados();
@@ -573,7 +630,6 @@ async function iniciar() {
       .on('postgres_changes',{event:'*',schema:'public',table:'equipes'},  async()=>{await carregarDados();render();})
       .subscribe();
     setInterval(carregarMercado, 15 * 60 * 1000);
-    setInterval(() => location.reload(), 5 * 60 * 1000);
   } finally {
     document.getElementById('db-loading').classList.add('hidden');
   }
