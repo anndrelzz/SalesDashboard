@@ -1,8 +1,535 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0;url=dashboard.html">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — VendaMax</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --red:#E8000D; --red-dark:#9B0009; --red-hover:#FF1A24;
+    --red-subtle:rgba(232,0,13,0.08); --red-border:rgba(232,0,13,0.25);
+    --black:#0D0D0D; --surface:#161616; --surface2:#1F1F1F; --surface3:#282828;
+    --border:rgba(255,255,255,0.08); --text:#FFFFFF;
+    --text-muted:rgba(255,255,255,0.5); --text-dim:rgba(255,255,255,0.25);
+    --success:#22C55E; --success-bg:rgba(34,197,94,0.08);
+    --danger:#EF4444; --danger-bg:rgba(239,68,68,0.08);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { min-height:100vh; background:var(--black); color:var(--text); font-family:'Barlow',sans-serif; font-size:14px; }
+
+  /* LOADER */
+  #page-loader { position:fixed; inset:0; background:var(--black); display:flex; align-items:center; justify-content:center; z-index:9999; flex-direction:column; gap:14px; }
+  #page-loader.hidden { display:none; }
+  .spinner { width:32px; height:32px; border:3px solid rgba(255,255,255,0.08); border-top-color:var(--red); border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg);} }
+  .loader-text { font-family:'Bebas Neue',sans-serif; font-size:13px; letter-spacing:3px; color:rgba(255,255,255,0.3); }
+
+  /* LAYOUT */
+  .layout { display:flex; min-height:100vh; }
+
+  /* SIDEBAR */
+  aside { width:220px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; position:sticky; top:0; height:100vh; }
+  .sidebar-logo { padding:24px 20px 20px; border-bottom:1px solid var(--border); }
+  .logo-text { font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:3px; color:var(--red); }
+  .logo-text span { color:var(--text); }
+  .logo-sub { font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin-top:2px; }
+  nav { padding:16px 12px; flex:1; display:flex; flex-direction:column; gap:4px; }
+  .nav-section-label { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text-dim); padding:12px 8px 6px; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; cursor:pointer; color:var(--text-muted); font-size:13px; font-weight:500; transition:all .15s; border:1px solid transparent; text-decoration:none; }
+  .nav-item:hover { color:var(--text); background:var(--surface2); }
+  .nav-item.active { color:var(--text); background:var(--red-subtle); border-color:var(--red-border); }
+  .nav-item.active .nav-icon { color:var(--red); }
+  .nav-icon { font-size:16px; width:18px; text-align:center; }
+  .sidebar-footer { padding:16px; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:8px; }
+  .back-btn { display:block; text-align:center; padding:10px; background:var(--surface2); color:var(--text-muted); font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; border-radius:8px; text-decoration:none; border:1px solid var(--border); transition:all .15s; }
+  .back-btn:hover { color:var(--text); border-color:rgba(255,255,255,0.2); }
+  .logout-btn { width:100%; padding:9px; background:none; border:1px solid var(--border); border-radius:8px; color:var(--text-muted); font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; transition:all .15s; }
+  .logout-btn:hover { color:var(--danger); border-color:rgba(239,68,68,0.3); }
+
+  /* CONTENT */
+  .content { flex:1; display:flex; flex-direction:column; min-height:100vh; overflow:auto; }
+  .content-header { padding:28px 32px 0; display:flex; justify-content:space-between; align-items:flex-start; }
+  .page-title { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:2px; }
+  .page-sub { font-size:13px; color:var(--text-muted); margin-top:2px; }
+  .content-body { padding:24px 32px 40px; flex:1; }
+  .section { display:none; }
+  .section.active { display:block; }
+
+  /* STATS */
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 18px; }
+  .stat-label { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; }
+  .stat-value { font-family:'Bebas Neue',sans-serif; font-size:30px; line-height:1; }
+  .stat-value.red { color:var(--red); }
+
+  /* CARD */
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:20px; }
+  .card-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .card-title { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; letter-spacing:2px; text-transform:uppercase; }
+  .card-body { padding:20px; }
+  .card-body.no-pad { padding:0; }
+
+  /* FORM */
+  .form-grid { display:grid; gap:14px; }
+  .form-grid-2 { grid-template-columns:1fr 1fr; }
+  .form-grid-3 { grid-template-columns:1fr 1fr 1fr; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-label { font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); }
+  .form-input, .form-select { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; color:var(--text); font-family:'Barlow',sans-serif; font-size:14px; transition:border-color .15s; outline:none; width:100%; }
+  .form-input:focus, .form-select:focus { border-color:var(--red-border); background:var(--surface3); }
+  .form-select option { background:var(--surface2); }
+
+  /* BUTTONS */
+  .btn { padding:10px 20px; border-radius:8px; border:none; font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all .15s; }
+  .btn-primary { background:var(--red); color:#fff; }
+  .btn-primary:hover { background:var(--red-hover); }
+  .btn-danger { background:var(--danger-bg); color:var(--danger); border:1px solid rgba(239,68,68,0.2); }
+  .btn-danger:hover { background:rgba(239,68,68,0.15); }
+  .btn-sm { padding:6px 12px; font-size:11px; }
+  .btn-row { display:flex; gap:10px; margin-top:4px; }
+
+  /* TABLE */
+  .table { width:100%; border-collapse:collapse; }
+  .table th { text-align:left; font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); padding:12px 20px; border-bottom:1px solid var(--border); background:var(--surface2); }
+  .table td { padding:13px 20px; border-bottom:1px solid var(--border); font-size:13px; }
+  .table tr:last-child td { border-bottom:none; }
+  .table tr:hover td { background:rgba(255,255,255,0.02); }
+  .badge { display:inline-block; padding:3px 8px; border-radius:5px; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+  .badge-red { background:var(--red-subtle); color:var(--red); border:1px solid var(--red-border); }
+  .td-actions { display:flex; gap:6px; }
+  .empty-row td { text-align:center; color:var(--text-dim); padding:40px 20px; font-size:13px; letter-spacing:1px; text-transform:uppercase; }
+
+  /* META BIG */
+  .meta-big { display:flex; align-items:center; gap:28px; background:var(--surface2); border:1px solid var(--red-border); border-radius:12px; padding:24px 28px; margin-bottom:20px; }
+  .meta-big-value { font-family:'Bebas Neue',sans-serif; font-size:48px; color:var(--red); letter-spacing:2px; line-height:1; }
+  .meta-big-label { font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; }
+  .progress-big { flex:1; }
+  .progress-big-bar-wrap { height:14px; background:var(--surface3); border-radius:8px; overflow:hidden; margin:8px 0; }
+  .progress-big-bar { height:100%; background:linear-gradient(90deg,var(--red-dark),var(--red)); border-radius:8px; transition:width .6s ease; }
+  .progress-big-info { display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); }
+  .progress-big-info strong { color:var(--text); }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--success); border-radius:8px; padding:14px 18px; font-size:13px; font-weight:600; display:none; z-index:9999; animation:fadeIn .2s; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  hr { border:none; border-top:1px solid var(--border); margin:20px 0; }
+</style>
 </head>
-<body></body>
+<body>
+
+<div id="page-loader">
+  <div class="spinner"></div>
+  <div class="loader-text">Carregando...</div>
+</div>
+
+<div class="layout">
+
+<aside>
+  <div class="sidebar-logo">
+    <div class="logo-text">VENDA<span>MAX</span></div>
+    <div class="logo-sub">Painel de Administração</div>
+  </div>
+  <nav>
+    <div class="nav-section-label">Menu</div>
+    <a class="nav-item active" onclick="showSection('resumo',this)">
+      <span class="nav-icon">📊</span> Resumo
+    </a>
+    <a class="nav-item" onclick="showSection('meta',this)">
+      <span class="nav-icon">🎯</span> Meta do Mês
+    </a>
+    <a class="nav-item" onclick="showSection('vendas',this)">
+      <span class="nav-icon">💰</span> Lançar Venda
+    </a>
+    <div class="nav-section-label">Cadastros</div>
+    <a class="nav-item" onclick="showSection('vendedores',this)">
+      <span class="nav-icon">👤</span> Vendedores
+    </a>
+    <a class="nav-item" onclick="showSection('equipes',this)">
+      <span class="nav-icon">🏆</span> Equipes
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="dashboard.html" class="back-btn">← Voltar ao Dashboard</a>
+    <button class="logout-btn" onclick="logout()">Sair da Sessão</button>
+  </div>
+</aside>
+
+<div class="content">
+
+  <!-- RESUMO -->
+  <div id="sec-resumo" class="section active">
+    <div class="content-header">
+      <div><div class="page-title">Resumo</div><div class="page-sub">Visão geral do mês atual</div></div>
+    </div>
+    <div class="content-body">
+      <div class="meta-big">
+        <div>
+          <div class="meta-big-label">Meta do Mês</div>
+          <div class="meta-big-value" id="resumo-meta-val">R$ 0</div>
+        </div>
+        <div class="progress-big">
+          <div class="meta-big-label">Progresso</div>
+          <div class="progress-big-bar-wrap"><div class="progress-big-bar" id="resumo-bar" style="width:0%"></div></div>
+          <div class="progress-big-info">
+            <span>Realizado: <strong id="resumo-realizado">R$ 0</strong></span>
+            <span>Faltam: <strong id="resumo-faltam">R$ 0</strong></span>
+            <strong id="resumo-pct" style="color:var(--red)">0%</strong>
+          </div>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Vendedores</div><div class="stat-value" id="stat-vend">0</div></div>
+        <div class="stat-card"><div class="stat-label">Equipes</div><div class="stat-value" id="stat-eq">0</div></div>
+        <div class="stat-card"><div class="stat-label">Vendas no Mês</div><div class="stat-value" id="stat-vendas">0</div></div>
+        <div class="stat-card"><div class="stat-label">Total do Mês</div><div class="stat-value red" id="stat-total">R$ 0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Últimas Vendas</span></div>
+        <div class="card-body no-pad"><table class="table"><thead><tr><th>Vendedor</th><th>Equipe</th><th>Valor</th><th>Data</th></tr></thead><tbody id="tb-ultimas"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- META -->
+  <div id="sec-meta" class="section">
+    <div class="content-header"><div><div class="page-title">Meta do Mês</div><div class="page-sub">Defina a meta mensal de vendas</div></div></div>
+    <div class="content-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Configurar Meta</span></div>
+        <div class="card-body">
+          <div class="form-grid" style="max-width:400px">
+            <div class="form-group">
+              <label class="form-label">Valor da Meta (R$)</label>
+              <input type="number" id="input-meta" class="form-input" placeholder="Ex: 500000" min="0">
+            </div>
+          </div>
+          <div class="btn-row"><button class="btn btn-primary" onclick="salvarMeta()">Salvar Meta</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VENDAS -->
+  <div id="sec-vendas" class="section">
+    <div class="content-header"><div><div class="page-title">Lançar Venda</div><div class="page-sub">Atribua uma venda a um vendedor</div></div></div>
+    <div class="content-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Nova Venda</span></div>
+        <div class="card-body">
+          <div class="form-grid form-grid-3">
+            <div class="form-group"><label class="form-label">Vendedor</label><select id="sel-vendedor" class="form-select"><option value="">Selecione...</option></select></div>
+            <div class="form-group"><label class="form-label">Valor (R$)</label><input type="number" id="input-valor" class="form-input" placeholder="Ex: 15000" min="0" step="0.01"></div>
+            <div class="form-group"><label class="form-label">Data</label><input type="date" id="input-data" class="form-input"></div>
+          </div>
+          <div class="form-group" style="max-width:400px;margin-top:14px">
+            <label class="form-label">Descrição (opcional)</label>
+            <input type="text" id="input-descricao" class="form-input" placeholder="Ex: Venda de equipamento X">
+          </div>
+          <div class="btn-row"><button class="btn btn-primary" onclick="lancarVenda()">Lançar Venda</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Histórico de Vendas</span>
+          <button class="btn btn-danger btn-sm" onclick="if(confirm('Limpar todas as vendas do mês?')) limparVendas()">Limpar Mês</button>
+        </div>
+        <div class="card-body no-pad"><table class="table"><thead><tr><th>Vendedor</th><th>Equipe</th><th>Valor</th><th>Descrição</th><th>Data</th><th></th></tr></thead><tbody id="tb-vendas"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VENDEDORES -->
+  <div id="sec-vendedores" class="section">
+    <div class="content-header"><div><div class="page-title">Vendedores</div><div class="page-sub">Cadastre e gerencie vendedores</div></div></div>
+    <div class="content-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Cadastrar Vendedor</span></div>
+        <div class="card-body">
+          <div class="form-grid form-grid-2" style="max-width:520px">
+            <div class="form-group"><label class="form-label">Nome Completo</label><input type="text" id="input-vend-nome" class="form-input" placeholder="Ex: João Silva"></div>
+            <div class="form-group"><label class="form-label">Equipe</label><select id="sel-vend-equipe" class="form-select"><option value="">Sem equipe</option></select></div>
+          </div>
+          <div class="btn-row"><button class="btn btn-primary" onclick="cadastrarVendedor()">Cadastrar</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Lista de Vendedores</span></div>
+        <div class="card-body no-pad"><table class="table"><thead><tr><th>Nome</th><th>Equipe</th><th>Vendas no Mês</th><th>Total no Mês</th><th></th></tr></thead><tbody id="tb-vendedores"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EQUIPES -->
+  <div id="sec-equipes" class="section">
+    <div class="content-header"><div><div class="page-title">Equipes</div><div class="page-sub">Cadastre e gerencie equipes</div></div></div>
+    <div class="content-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Cadastrar Equipe</span></div>
+        <div class="card-body">
+          <div class="form-grid" style="max-width:340px">
+            <div class="form-group"><label class="form-label">Nome da Equipe</label><input type="text" id="input-eq-nome" class="form-input" placeholder="Ex: Equipe Alfa"></div>
+          </div>
+          <div class="btn-row"><button class="btn btn-primary" onclick="cadastrarEquipe()">Cadastrar</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Lista de Equipes</span></div>
+        <div class="card-body no-pad"><table class="table"><thead><tr><th>Nome da Equipe</th><th>Membros</th><th>Total no Mês</th><th></th></tr></thead><tbody id="tb-equipes"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ================================================================
+// ⚙️  CONFIGURAÇÕES
+// ================================================================
+const SUPABASE_URL = 'https://hgvhjccsjuvyclalxcai.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhndmhqY2NzanV2eWNsYWx4Y2FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDQxMTksImV4cCI6MjA4OTUyMDExOX0.8RfTEfF4NM_1amwWZirTxshnYeCKtxR28cDOFuWknAY';
+// ================================================================
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let state = { meta:0, vendedores:[], equipes:[], vendas:[] };
+
+async function logout() {
+  await sb.auth.signOut();
+  window.location.replace('dashboard.html');
+}
+
+// ─── HELPERS ───
+const fmt = v => 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+const getMes = () => { const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`; };
+
+function toast(msg, ok=true) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.borderLeftColor = ok ? 'var(--success)' : 'var(--danger)';
+  el.style.color = ok ? 'var(--success)' : 'var(--danger)';
+  el.style.display = 'block';
+  setTimeout(()=>{ el.style.display='none'; }, 2500);
+}
+
+// ─── CARREGAR DADOS ───
+async function carregarDados() {
+  const mes = getMes();
+  const [r1,r2,r3,r4] = await Promise.all([
+    sb.from('equipes').select('*').order('nome'),
+    sb.from('vendedores').select('*').order('nome'),
+    sb.from('metas').select('*').eq('mes',mes).maybeSingle(),
+    sb.from('vendas').select('*').eq('mes',mes).order('created_at',{ascending:false}),
+  ]);
+  state.equipes    = r1.data || [];
+  state.vendedores = r2.data || [];
+  state.meta       = r3.data?.valor || 0;
+  state.vendas     = r4.data || [];
+}
+
+// ─── NAV ───
+function showSection(id, el) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  renderAll();
+}
+
+// ─── RENDERS ───
+function renderAll() {
+  renderResumo();
+  renderSelects();
+  renderTbVendedores();
+  renderTbEquipes();
+  renderTbVendas();
+  preencherInputMeta();
+}
+
+function renderResumo() {
+  const { meta, vendedores, equipes, vendas } = state;
+  const total = vendas.reduce((a,b)=>a+Number(b.valor),0);
+  const pct   = meta>0 ? Math.min(100,Math.round(total/meta*100)) : 0;
+  const faltam = Math.max(0,meta-total);
+
+  document.getElementById('resumo-meta-val').textContent  = fmt(meta);
+  document.getElementById('resumo-realizado').textContent = fmt(total);
+  document.getElementById('resumo-faltam').textContent    = fmt(faltam);
+  document.getElementById('resumo-pct').textContent       = pct+'%';
+  document.getElementById('resumo-bar').style.width       = pct+'%';
+  document.getElementById('stat-vend').textContent        = vendedores.length;
+  document.getElementById('stat-eq').textContent          = equipes.length;
+  document.getElementById('stat-vendas').textContent      = vendas.length;
+  document.getElementById('stat-total').textContent       = fmt(total);
+
+  const tb = document.getElementById('tb-ultimas');
+  if (!vendas.length) {
+    tb.innerHTML = `<tr class="empty-row"><td colspan="4">Nenhuma venda lançada ainda</td></tr>`; return;
+  }
+  tb.innerHTML = vendas.slice(0,8).map(v => {
+    const vend = vendedores.find(x=>x.id===v.vendedor_id);
+    const eq   = vend ? equipes.find(e=>e.id===vend.equipe_id) : null;
+    return `<tr>
+      <td>${vend?vend.nome:'—'}</td>
+      <td>${eq?`<span class="badge badge-red">${eq.nome}</span>`:'<span style="color:var(--text-dim)">Sem equipe</span>'}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--red)">${fmt(v.valor)}</td>
+      <td style="color:var(--text-muted)">${v.data||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function preencherInputMeta() {
+  document.getElementById('input-meta').value = state.meta || '';
+}
+
+function renderSelects() {
+  const { vendedores, equipes } = state;
+  document.getElementById('sel-vendedor').innerHTML = '<option value="">Selecione...</option>' +
+    vendedores.map(v=>`<option value="${v.id}">${v.nome}</option>`).join('');
+  const eqOpts = '<option value="">Sem equipe</option>' + equipes.map(e=>`<option value="${e.id}">${e.nome}</option>`).join('');
+  document.getElementById('sel-vend-equipe').innerHTML = eqOpts;
+}
+
+function renderTbVendedores() {
+  const { vendedores, equipes, vendas } = state;
+  const tb = document.getElementById('tb-vendedores');
+  if (!vendedores.length) { tb.innerHTML=`<tr class="empty-row"><td colspan="5">Nenhum vendedor cadastrado</td></tr>`; return; }
+  tb.innerHTML = vendedores.map(v => {
+    const eq = equipes.find(e=>e.id===v.equipe_id);
+    const minhasVendas = vendas.filter(x=>x.vendedor_id===v.id);
+    const total = minhasVendas.reduce((a,b)=>a+Number(b.valor),0);
+    return `<tr>
+      <td style="font-weight:600">${v.nome}</td>
+      <td>${eq?`<span class="badge badge-red">${eq.nome}</span>`:'<span style="color:var(--text-dim)">—</span>'}</td>
+      <td>${minhasVendas.length}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--red)">${fmt(total)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removerVendedor('${v.id}')">Remover</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderTbEquipes() {
+  const { equipes, vendedores, vendas } = state;
+  const tb = document.getElementById('tb-equipes');
+  if (!equipes.length) { tb.innerHTML=`<tr class="empty-row"><td colspan="4">Nenhuma equipe cadastrada</td></tr>`; return; }
+  tb.innerHTML = equipes.map(e => {
+    const membros = vendedores.filter(v=>v.equipe_id===e.id);
+    const total = vendas.filter(v=>membros.find(m=>m.id===v.vendedor_id)).reduce((a,b)=>a+Number(b.valor),0);
+    return `<tr>
+      <td style="font-weight:600">${e.nome}</td>
+      <td>${membros.length} membro(s)</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--red)">${fmt(total)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removerEquipe('${e.id}')">Remover</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderTbVendas() {
+  const { vendas, vendedores, equipes } = state;
+  const tb = document.getElementById('tb-vendas');
+  if (!vendas.length) { tb.innerHTML=`<tr class="empty-row"><td colspan="6">Nenhuma venda lançada no mês</td></tr>`; return; }
+  tb.innerHTML = vendas.map(v => {
+    const vend = vendedores.find(x=>x.id===v.vendedor_id);
+    const eq   = vend ? equipes.find(e=>e.id===vend.equipe_id) : null;
+    return `<tr>
+      <td style="font-weight:600">${vend?vend.nome:'Removido'}</td>
+      <td>${eq?`<span class="badge badge-red">${eq.nome}</span>`:'—'}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--red)">${fmt(v.valor)}</td>
+      <td style="color:var(--text-muted)">${v.descricao||'—'}</td>
+      <td style="color:var(--text-muted)">${v.data||'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removerVenda('${v.id}')">Excluir</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── AÇÕES ───
+async function salvarMeta() {
+  const val = parseFloat(document.getElementById('input-meta').value);
+  if (!val||val<=0) { toast('Informe um valor válido',false); return; }
+  const mes = getMes();
+  const { error } = await sb.from('metas').upsert({ mes, valor:val }, { onConflict:'mes' });
+  if (error) { toast('Erro ao salvar meta',false); return; }
+  await carregarDados(); renderAll(); toast('Meta salva!');
+}
+
+async function lancarVenda() {
+  const vendedor_id = document.getElementById('sel-vendedor').value;
+  const valor       = parseFloat(document.getElementById('input-valor').value);
+  const data        = document.getElementById('input-data').value;
+  const descricao   = document.getElementById('input-descricao').value.trim();
+  if (!vendedor_id) { toast('Selecione um vendedor',false); return; }
+  if (!valor||valor<=0) { toast('Informe um valor válido',false); return; }
+  const mes = data ? data.substring(0,7) : getMes();
+  const { error } = await sb.from('vendas').insert({ vendedor_id, valor, data, descricao, mes });
+  if (error) { toast('Erro ao lançar venda',false); return; }
+  document.getElementById('input-valor').value = '';
+  document.getElementById('input-descricao').value = '';
+  await carregarDados(); renderAll(); toast('Venda lançada!');
+}
+
+async function limparVendas() {
+  const { error } = await sb.from('vendas').delete().eq('mes', getMes());
+  if (error) { toast('Erro ao limpar',false); return; }
+  await carregarDados(); renderAll(); toast('Vendas do mês removidas');
+}
+
+async function removerVenda(id) {
+  if (!confirm('Remover esta venda?')) return;
+  await sb.from('vendas').delete().eq('id',id);
+  await carregarDados(); renderAll();
+}
+
+async function cadastrarVendedor() {
+  const nome     = document.getElementById('input-vend-nome').value.trim();
+  const equipe_id = document.getElementById('sel-vend-equipe').value || null;
+  if (!nome) { toast('Informe o nome',false); return; }
+  const { error } = await sb.from('vendedores').insert({ nome, equipe_id });
+  if (error) { toast('Erro ao cadastrar',false); return; }
+  document.getElementById('input-vend-nome').value = '';
+  await carregarDados(); renderAll(); toast('Vendedor cadastrado!');
+}
+
+async function removerVendedor(id) {
+  if (!confirm('Remover vendedor e suas vendas?')) return;
+  await sb.from('vendas').delete().eq('vendedor_id',id);
+  await sb.from('vendedores').delete().eq('id',id);
+  await carregarDados(); renderAll();
+}
+
+async function cadastrarEquipe() {
+  const nome = document.getElementById('input-eq-nome').value.trim();
+  if (!nome) { toast('Informe o nome',false); return; }
+  const { error } = await sb.from('equipes').insert({ nome });
+  if (error) { toast('Equipe já existe ou erro ao cadastrar',false); return; }
+  document.getElementById('input-eq-nome').value = '';
+  await carregarDados(); renderAll(); toast('Equipe cadastrada!');
+}
+
+async function removerEquipe(id) {
+  if (!confirm('Remover equipe? Os vendedores ficarão sem equipe.')) return;
+  await sb.from('vendedores').update({ equipe_id:null }).eq('equipe_id',id);
+  await sb.from('equipes').delete().eq('id',id);
+  await carregarDados(); renderAll();
+}
+
+// ─── INIT ───
+document.getElementById('input-data').value = new Date().toISOString().slice(0,10);
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.replace('dashboard.html');
+    return;
+  }
+  await carregarDados();
+  document.getElementById('page-loader').classList.add('hidden');
+  renderAll();
+})();
+</script>
+</body>
 </html>

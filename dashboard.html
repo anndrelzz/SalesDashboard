@@ -112,8 +112,8 @@
     <div class="login-subtitle">Dashboard de Vendas</div>
     <div class="login-fields">
       <div class="login-field">
-        <label class="login-label">Usuário</label>
-        <input type="text" id="login-user" class="login-input" placeholder="usuario" autocomplete="username"
+        <label class="login-label">E-mail</label>
+        <input type="email" id="login-user" class="login-input" placeholder="seu@email.com" autocomplete="username"
           onkeydown="if(event.key==='Enter') document.getElementById('login-pass').focus()">
       </div>
       <div class="login-field">
@@ -218,44 +218,53 @@
 
 <script>
 // ================================================================
-// ⚙️  CONFIGURAÇÕES — ALTERE AQUI O LOGIN E SENHA
+// ⚙️  CONFIGURAÇÕES
 // ================================================================
 const SUPABASE_URL = 'https://hgvhjccsjuvyclalxcai.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhndmhqY2NzanV2eWNsYWx4Y2FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDQxMTksImV4cCI6MjA4OTUyMDExOX0.8RfTEfF4NM_1amwWZirTxshnYeCKtxR28cDOFuWknAY';
-
-const DASH_USER   = 'admin';         // ← altere o usuário
-const DASH_PASS   = 'vendamax2026';  // ← altere a senha
 // ================================================================
 
-const SESSION_KEY = 'vendamax_dash_auth';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let state = { meta:0, vendedores:[], equipes:[], vendas:[] };
 let chartV = null, chartE = null;
 
-// ─── LOGIN ───
-function tentarLogin() {
-  const user = document.getElementById('login-user').value.trim();
-  const pass = document.getElementById('login-pass').value;
-  const err  = document.getElementById('login-error');
-  if (user === DASH_USER && pass === DASH_PASS) {
-    sessionStorage.setItem(SESSION_KEY, '1');
-    document.getElementById('login-screen').classList.add('hidden');
-    err.classList.remove('visible');
-    iniciar();
-  } else {
+// ─── LOGIN SUPABASE AUTH ───
+async function tentarLogin() {
+  const email = document.getElementById('login-user').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const err   = document.getElementById('login-error');
+  const btn   = document.querySelector('.login-btn');
+
+  btn.textContent = 'Entrando...';
+  btn.disabled = true;
+
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+  btn.textContent = 'Entrar';
+  btn.disabled = false;
+
+  if (error) {
     err.classList.add('visible');
     document.getElementById('login-pass').value = '';
     document.getElementById('login-pass').focus();
+  } else {
+    err.classList.remove('visible');
+    document.getElementById('login-screen').classList.add('hidden');
+    iniciar();
   }
 }
 
-if (!sessionStorage.getItem(SESSION_KEY)) {
-  document.getElementById('db-loading').classList.add('hidden');
-  setTimeout(() => document.getElementById('login-user').focus(), 100);
-} else {
-  document.getElementById('login-screen').classList.add('hidden');
-  iniciar();
-}
+// Verifica sessão existente ao carregar
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    document.getElementById('login-screen').classList.add('hidden');
+    iniciar();
+  } else {
+    document.getElementById('db-loading').classList.add('hidden');
+    setTimeout(() => document.getElementById('login-user').focus(), 100);
+  }
+})();
 
 // ─── CLOCK ───
 function updateClock() {
