@@ -461,11 +461,16 @@ function render() {
   const sv = Object.entries(tV).map(([id,val])=>({id,val,v:vendedores.find(x=>x.id===id)})).filter(x=>x.v).sort((a,b)=>b.val-a.val);
 
   // TOP 10 no card esquerdo
+  const topBg = [
+    'background:rgba(255,184,0,0.12);border-color:rgba(255,184,0,0.35)',  // ouro
+    'background:rgba(192,192,192,0.1);border-color:rgba(192,192,192,0.3)', // prata
+    'background:rgba(205,127,50,0.12);border-color:rgba(205,127,50,0.35)', // bronze
+  ];
   document.getElementById('top5-vendedores').innerHTML = sv.length
-    ? sv.slice(0,10).map((x,i)=>`<div class="top5-item">
+    ? sv.slice(0,10).map((x,i)=>`<div class="top5-item" style="${topBg[i]||''}">
         <span style="font-size:${i<3?'20':'15'}px;flex-shrink:0;width:26px;text-align:center">${medals[i]||i+1}</span>
         <span class="top5-name">${x.v.nome}</span>
-        <span class="top5-value" style="font-size:14px">R$ ${x.val.toLocaleString('pt-BR')}</span>
+        <span class="top5-value" style="font-size:14px;color:${i===0?'#FFB800':i===1?'#C0C0C0':i===2?'#CD7F32':'var(--text)'}">R$ ${x.val.toLocaleString('pt-BR')}</span>
       </div>`).join('')
     : '<div class="empty-state">Sem dados ainda</div>';
 
