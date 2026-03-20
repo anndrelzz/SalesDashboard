@@ -51,7 +51,7 @@
   .market-item-change.down { color:var(--red); }
   .market-loading { font-size:10px; color:var(--text-dim); letter-spacing:1px; }
 
-  /* CLOCK, TABS & PANELS */
+  /* CLOCK & BUTTONS */
   .nav-clock { text-align:center; flex-shrink:0; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 16px; display:flex; flex-direction:column; justify-content:center; gap:3px; }
   .clock-time { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:3px; color:var(--text); line-height:1; }
   .clock-date { font-size:9px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
@@ -60,6 +60,7 @@
   .lock-btn svg { width:15px; height:15px; stroke:var(--text-muted); transition:stroke .15s; }
   .lock-btn:hover svg { stroke:var(--red); }
 
+  /* TABS & PANELS */
   .tabs-bar { display:flex; background:var(--surface); border-bottom:1px solid var(--border); padding:0 28px; flex-shrink:0; }
   .tab-btn { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); background:none; border:none; border-bottom:3px solid transparent; padding:12px 24px; cursor:pointer; transition:all .2s; }
   .tab-btn.active { color:var(--text); border-bottom-color:var(--red); }
@@ -75,7 +76,6 @@
   .top5-card { background:var(--surface); border:1px solid var(--border); border-top:2px solid var(--red); border-radius:10px; padding:16px; flex:1; overflow:hidden; }
   .top5-list { margin-top:12px; display:flex; flex-direction:column; gap:8px; }
   .top5-item { display:flex; align-items:center; gap:10px; padding:9px 12px; background:var(--surface2); border-radius:8px; border:1px solid var(--border); }
-  .top5-item:first-child { background:rgba(232,0,13,0.08); border-color:var(--border-red); }
   .rank-badge { font-family:'Bebas Neue',sans-serif; font-size:18px; width:24px; text-align:center; flex-shrink:0; }
   .top5-name { flex:1; font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .top5-value { font-family:'Bebas Neue',sans-serif; font-size:17px; flex-shrink:0; }
@@ -204,19 +204,21 @@
 
 <script>
 // ================================================================
-// ⚙️ CONFIGURAÇÕES (NOVA CHAVE HG BRASIL)
+// ⚙️ CONFIGURAÇÕES (NOVA CHAVE HG BRASIL: 3fe86be6)
 // ================================================================
 const SUPABASE_URL = 'https://hgvhjccsjuvyclalxcai.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhndmhqY2NzanV2eWNsYWx4Y2FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDQxMTksImV4cCI6MjA4OTUyMDExOX0.8RfTEfF4NM_1amwWZirTxshnYeCKtxR28cDOFuWknAY';
-const HG_KEY = 'b5eeae6a'; // CHAVE ATUALIZADA
+const HG_KEY = '3fe86be6'; // ATUALIZADO
 // ================================================================
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let state = { meta:0, vendedores:[], equipes:[], vendas:[] };
 let chartV = null, chartE = null;
 
-// --- MERCADO FINANCEIRO (SOLUÇÃO DEFINITIVA PARA TV) ---
+// --- MERCADO FINANCEIRO (SOLUÇÃO DEFINITIVA) ---
+// Função de recebimento global definida imediatamente no window
 window.atualizarCardsMercado = function(data) {
+  console.log("Resposta HG recebida");
   const container = document.getElementById('market-items');
   if (!container) return;
   try {
@@ -255,7 +257,8 @@ function carregarMercado() {
   if (old) old.remove();
   const script = document.createElement('script');
   script.id = 'hg-script';
-  script.src = `https://api.hgbrasil.com/finance?format=jsonp&callback=atualizarCardsMercado&key=${HG_KEY}&_=${new Date().getTime()}`;
+  // O timestamp (_) força o navegador a não usar cache
+  script.src = `https://api.hgbrasil.com/finance?format=jsonp&callback=atualizarCardsMercado&key=${HG_KEY}&_=${Date.now()}`;
   document.body.appendChild(script);
 }
 
