@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — VendaMax</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #E8000D;
+    --red-dark: #9B0009;
+    --red-hover: #FF1A24;
+    --red-subtle: rgba(232,0,13,0.08);
+    --red-border: rgba(232,0,13,0.25);
+    --black: #0D0D0D;
+    --surface: #161616;
+    --surface2: #1F1F1F;
+    --surface3: #282828;
+    --border: rgba(255,255,255,0.08);
+    --text: #FFFFFF;
+    --text-muted: rgba(255,255,255,0.5);
+    --text-dim: rgba(255,255,255,0.25);
+    --success: #22C55E;
+    --success-bg: rgba(34,197,94,0.08);
+    --danger: #EF4444;
+    --danger-bg: rgba(239,68,68,0.08);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body {
+    min-height: 100vh;
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+  }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  aside {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 3px;
+    color: var(--red);
+  }
+  .logo-text span { color: var(--text); }
+  .logo-sub {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  nav {
+    padding: 16px 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 12px 8px 6px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all .15s;
+    border: 1px solid transparent;
+    text-decoration: none;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active {
+    color: var(--text);
+    background: var(--red-subtle);
+    border-color: var(--red-border);
+  }
+  .nav-item.active .nav-icon { color: var(--red); }
+  .nav-icon { font-size: 16px; width: 18px; text-align: center; }
+  .sidebar-footer {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .open-dashboard-btn {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    background: var(--red);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background .15s;
+  }
+  .open-dashboard-btn:hover { background: var(--red-hover); }
+
+  /* ── CONTENT ── */
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow: auto;
+  }
+  .content-header {
+    padding: 28px 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+  .page-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .content-body {
+    padding: 24px 32px 40px;
+    flex: 1;
+  }
+
+  /* ── SECTIONS ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .stat-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 30px;
+    color: var(--text);
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+  .stat-value.red { color: var(--red); }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .card-body { padding: 20px; }
+  .card-body.no-pad { padding: 0; }
+
+  /* ── FORM ── */
+  .form-grid {
+    display: grid;
+    gap: 14px;
+  }
+  .form-grid-2 { grid-template-columns: 1fr 1fr; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .form-input, .form-select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    transition: border-color .15s;
+    outline: none;
+    width: 100%;
+  }
+  .form-input:focus, .form-select:focus {
+    border-color: var(--red-border);
+    background: var(--surface3);
+  }
+  .form-select option { background: var(--surface2); }
+  .form-input[type="number"] { -moz-appearance: textfield; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-primary {
+    background: var(--red);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--red-hover); }
+  .btn-secondary {
+    background: var(--surface3);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { color: var(--text); }
+  .btn-danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid rgba(239,68,68,0.2);
+  }
+  .btn-danger:hover { background: rgba(239,68,68,0.15); }
+  .btn-sm { padding: 6px 12px; font-size: 11px; }
+  .btn-row { display: flex; gap: 10px; margin-top: 4px; }
+
+  /* ── TABLE ── */
+  .table { width: 100%; border-collapse: collapse; }
+  .table th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .table td {
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text);
+  }
+  .table tr:last-child td { border-bottom: none; }
+  .table tr:hover td { background: rgba(255,255,255,0.02); }
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .badge-red { background: var(--red-subtle); color: var(--red); border: 1px solid var(--red-border); }
+  .badge-green { background: var(--success-bg); color: var(--success); }
+  .td-actions { display: flex; gap: 6px; align-items: center; }
+
+  /* ── META CARD ── */
+  .meta-big {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    background: var(--surface2);
+    border: 1px solid var(--red-border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+  }
+  .meta-big-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    color: var(--red);
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .meta-big-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .progress-big {
+    flex: 1;
+  }
+  .progress-big-bar-wrap {
+    height: 14px;
+    background: var(--surface3);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 8px 0;
+  }
+  .progress-big-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red-dark), var(--red));
+    border-radius: 8px;
+    transition: width .6s ease;
+  }
+  .progress-big-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .progress-big-info strong { color: var(--text); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--success);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--success);
+    display: none;
+    z-index: 9999;
+    animation: fadeIn .2s;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── EMPTY ── */
+  .empty-row td {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 40px 20px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* ── DIVIDER ── */
+  hr { border:none; border-top:1px solid var(--border); margin: 20px 0; }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside>
+  <div class="sidebar-logo">
+    <div class="logo-text">VENDA<span>MAX</span></div>
+    <div class="logo-sub">Painel de Administração</div>
+  </div>
+  <nav>
+    <div class="nav-section-label">Menu</div>
+    <a class="nav-item active" onclick="showSection('resumo')">
+      <span class="nav-icon">📊</span> Resumo
+    </a>
+    <a class="nav-item" onclick="showSection('meta')">
+      <span class="nav-icon">🎯</span> Meta do Mês
+    </a>
+    <a class="nav-item" onclick="showSection('vendas')">
+      <span class="nav-icon">💰</span> Lançar Venda
+    </a>
+    <div class="nav-section-label">Cadastros</div>
+    <a class="nav-item" onclick="showSection('vendedores')">
+      <span class="nav-icon">👤</span> Vendedores
+    </a>
+    <a class="nav-item" onclick="showSection('equipes')">
+      <span class="nav-icon">🏆</span> Equipes
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="dashboard.html" class="open-dashboard-btn">← Voltar ao Dashboard</a>
+    <button onclick="logout()" style="width:100%;margin-top:8px;padding:9px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--text-muted);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .15s"
+      onmouseover="this.style.color='var(--danger)';this.style.borderColor='rgba(239,68,68,0.3)'"
+      onmouseout="this.style.color='var(--text-muted)';this.style.borderColor='var(--border)'">
+      Sair da Sessão
+    </button>
+  </div>
+</aside>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ── RESUMO ── -->
+  <div id="sec-resumo" class="section active">
+    <div class="content-header">
+      <div><div class="page-title">Resumo</div><div class="page-sub">Visão geral do mês atual</div></div>
+    </div>
+    <div class="content-body">
+      <div id="resumo-meta-big" class="meta-big">
+        <div>
+          <div class="meta-big-label">Meta do Mês</div>
+          <div class="meta-big-value" id="resumo-meta-val">R$ 0</div>
+        </div>
+        <div class="progress-big">
+          <div class="meta-big-label">Progresso</div>
+          <div class="progress-big-bar-wrap">
+            <div class="progress-big-bar" id="resumo-bar" style="width:0%"></div>
+          </div>
+          <div class="progress-big-info">
+            <span>Realizado: <strong id="resumo-realizado">R$ 0</strong></span>
+            <span>Faltam: <strong id="resumo-faltam">R$ 0</strong></span>
+            <strong id="resumo-pct" style="color:var(--red)">0%</strong>
+          </div>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Vendedores</div><div class="stat-value" id="stat-vend">0</div></div>
+        <div class="stat-card"><div class="stat-label">Equipes</div><div class="stat-value" id="stat-eq">0</div></div>
+        <div class="stat-card"><div class="stat-label">Vendas no Mês</div><div class="stat-value" id="stat-vendas">0</div></div>
+        <div class="stat-card"><div class="stat-label">Total do Mês</div><div class="stat-value red" id="stat-total">R$ 0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Últimas Vendas</span></div>
+        <div class="card-body no-pad">
+          <table class="table">
+            <thead><tr><th>Vendedor</th><th>Equipe</th><th>Valor</th><th>Data</th></tr></thead>
+            <tbody id="tb-ultimas"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── META ── -->
+  <div id="sec-meta" class="section">
+    <div class="content-header">
+      <div><div class="page-title">Meta do Mês</div><div class="page-sub">Defina a meta mensal de vendas</div></div>
+    </div>
+    <div class="content-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Configurar Meta</span></div>
+        <div class="card-body">
+          <div class="form-grid" style="max-width:400px">
+            <div class="form-group">
+              <label class="form-label">Valor da Meta (R$)</label>
+              <input type="number" id="input-meta" class="form-input" placeholder="Ex: 500000" min="0">
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="salvarMeta()">Salvar Meta</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VENDAS ── -->
+  <div id="sec-vendas" class="section">
+    <div class="content-header">
+      <div><div class="page-title">Lançar Venda</div><div class="page-sub">Atribua uma venda a um vendedor</div></div>
+    </div>
+    <div class="content-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Nova Venda</span></div>
+        <div class="card-body">
+          <div class="form-grid form-grid-3">
+            <div class="form-group">
+              <label class="form-label">Vendedor</label>
+              <select id="sel-vendedor" class="form-select"><option value="">Selecione...</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Valor (R$)</label>
+              <input type="number" id="input-valor" class="form-input" placeholder="Ex: 15000" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Data</label>
+              <input type="date" id="input-data" class="form-input">
+            </div>
+          </div>
+          <div class="form-group" style="max-width:400px;margin-top:14px">
+            <label class="form-label">Descrição (opcional)</label>
+            <input type="text" id="input-descricao" class="form-input" placeholder="Ex: Venda de equipamento X">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="lancarVenda()">Lançar Venda</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Histórico de Vendas</span>
+          <button class="btn btn-danger btn-sm" onclick="if(confirm('Limpar todas as vendas do mês?')) limparVendas()">Limpar Mês</button>
+        </div>
+        <div class="card-body no-pad">
+          <table class="table">
+            <thead><tr><th>Vendedor</th><th>Equipe</th><th>Valor</th><th>Descrição</th><th>Data</th><th></th></tr></thead>
+            <tbody id="tb-vendas"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VENDEDORES ── -->
+  <div id="sec-vendedores" class="section">
+    <div class="content-header">
+      <div><div class="page-title">Vendedores</div><div class="page-sub">Cadastre e gerencie vendedores</div></div>
+    </div>
+    <div class="content-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Cadastrar Vendedor</span></div>
+        <div class="card-body">
+          <div class="form-grid form-grid-2" style="max-width:520px">
+            <div class="form-group">
+              <label class="form-label">Nome Completo</label>
+              <input type="text" id="input-vend-nome" class="form-input" placeholder="Ex: João Silva">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Equipe</label>
+              <select id="sel-vend-equipe" class="form-select"><option value="">Sem equipe</option></select>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="cadastrarVendedor()">Cadastrar</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Lista de Vendedores</span></div>
+        <div class="card-body no-pad">
+          <table class="table">
+            <thead><tr><th>Nome</th><th>Equipe</th><th>Vendas no Mês</th><th>Total no Mês</th><th></th></tr></thead>
+            <tbody id="tb-vendedores"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EQUIPES ── -->
+  <div id="sec-equipes" class="section">
+    <div class="content-header">
+      <div><div class="page-title">Equipes</div><div class="page-sub">Cadastre e gerencie equipes</div></div>
+    </div>
+    <div class="content-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Cadastrar Equipe</span></div>
+        <div class="card-body">
+          <div class="form-grid" style="max-width:340px">
+            <div class="form-group">
+              <label class="form-label">Nome da Equipe</label>
+              <input type="text" id="input-eq-nome" class="form-input" placeholder="Ex: Equipe Alfa">
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="cadastrarEquipe()">Cadastrar</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Lista de Equipes</span></div>
+        <div class="card-body no-pad">
+          <table class="table">
+            <thead><tr><th>Nome da Equipe</th><th>Membros</th><th>Total no Mês</th><th></th></tr></thead>
+            <tbody id="tb-equipes"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+</div><!-- /layout -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───
+function loadData() {
+  try { return JSON.parse(localStorage.getItem('vendamax_data') || 'null') || {meta:0,vendedores:[],equipes:[],vendas:[]}; }
+  catch(e) { return {meta:0,vendedores:[],equipes:[],vendas:[]}; }
+}
+function saveData(d) {
+  localStorage.setItem('vendamax_data', JSON.stringify(d));
+  window.dispatchEvent(new StorageEvent('storage', {key:'vendamax_data'}));
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function fmt(v) { return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+function getMesAtual() {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
+}
+
+function toast(msg, ok=true) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.borderLeftColor = ok ? 'var(--success)' : 'var(--danger)';
+  el.style.color = ok ? 'var(--success)' : 'var(--danger)';
+  el.style.display = 'block';
+  setTimeout(()=>{ el.style.display='none'; }, 2500);
+}
+
+// ─── NAV ───
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  renderAll();
+}
+
+// ─── RENDERS ───
+function renderAll() {
+  renderResumo();
+  renderSelects();
+  renderTbVendedores();
+  renderTbEquipes();
+  renderTbVendas();
+  preencherInputMeta();
+}
+
+function renderResumo() {
+  const d = loadData();
+  const mes = getMesAtual();
+  const vendasMes = d.vendas.filter(v=>v.mes===mes);
+  const total = vendasMes.reduce((a,b)=>a+b.valor,0);
+  const meta = d.meta||0;
+  const pct = meta>0?Math.min(100,Math.round(total/meta*100)):0;
+  const faltam = Math.max(0, meta-total);
+
+  document.getElementById('resumo-meta-val').textContent = fmt(meta);
+  document.getElementById('resumo-realizado').textContent = fmt(total);
+  document.getElementById('resumo-faltam').textContent = fmt(faltam);
+  document.getElementById('resumo-pct').textContent = pct+'%';
+  document.getElementById('resumo-bar').style.width = pct+'%';
+  document.getElementById('stat-vend').textContent = d.vendedores.length;
+  document.getElementById('stat-eq').textContent = d.equipes.length;
+  document.getElementById('stat-vendas').textContent = vendasMes.length;
+  document.getElementById('stat-total').textContent = fmt(total);
+
+  const ultimas = [...vendasMes].sort((a,b)=>b.createdAt-a.createdAt).slice(0,8);
+  const tb = document.getElementById('tb-ultimas');
+  if (!ultimas.length) {
+    tb.innerHTML = `<tr class="empty-row"><td colspan="4">Nenhuma venda lançada ainda</td></tr>`;
+  } else {
+    tb.innerHTML = ultimas.map(v=>{
+      const vend = d.vendedores.find(x=>x.id===v.vendedorId);
+      const eq = vend ? d.equipes.find(e=>e.id===vend.equipeId) : null;
+      return `<tr>
+        <td>${vend?vend.nome:'—'}</td>
+        <td>${eq?`<span class="badge badge-red">${eq.nome}</span>`:'<span style="color:var(--text-dim)">Sem equipe</span>'}</td>
+        <td style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--red)">${fmt(v.valor)}</td>
+        <td style="color:var(--text-muted)">${v.data||'—'}</td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+function preencherInputMeta() {
+  const d = loadData();
+  document.getElementById('input-meta').value = d.meta||'';
+}
+
+function renderSelects() {
+  const d = loadData();
+  const selVend = document.getElementById('sel-vendedor');
+  const selVendEq = document.getElementById('sel-vend-equipe');
+  selVend.innerHTML = '<option value="">Selecione...</option>' +
+    d.vendedores.map(v=>`<option value="${v.id}">${v.nome}</option>`).join('');
+  selVendEq.innerHTML = '<option value="">Sem equipe</option>' +
+    d.equipes.map(e=>`<option value="${e.id}">${e.nome}</option>`).join('');
+}
+
+function renderTbVendedores() {
+  const d = loadData();
+  const mes = getMesAtual();
+  const vendasMes = d.vendas.filter(v=>v.mes===mes);
+  const tb = document.getElementById('tb-vendedores');
+  if (!d.vendedores.length) {
+    tb.innerHTML = `<tr class="empty-row"><td colspan="5">Nenhum vendedor cadastrado</td></tr>`; return;
+  }
+  tb.innerHTML = d.vendedores.map(v=>{
+    const eq = d.equipes.find(e=>e.id===v.equipeId);
+    const minhasVendas = vendasMes.filter(x=>x.vendedorId===v.id);
+    const total = minhasVendas.reduce((a,b)=>a+b.valor,0);
+    return `<tr>
+      <td style="font-weight:600">${v.nome}</td>
+      <td>${eq?`<span class="badge badge-red">${eq.nome}</span>`:'<span style="color:var(--text-dim)">—</span>'}</td>
+      <td>${minhasVendas.length}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--red)">${fmt(total)}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-danger btn-sm" onclick="removerVendedor('${v.id}')">Remover</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderTbEquipes() {
+  const d = loadData();
+  const mes = getMesAtual();
+  const vendasMes = d.vendas.filter(v=>v.mes===mes);
+  const tb = document.getElementById('tb-equipes');
+  if (!d.equipes.length) {
+    tb.innerHTML = `<tr class="empty-row"><td colspan="4">Nenhuma equipe cadastrada</td></tr>`; return;
+  }
+  tb.innerHTML = d.equipes.map(e=>{
+    const membros = d.vendedores.filter(v=>v.equipeId===e.id);
+    const total = vendasMes.filter(v=> membros.find(m=>m.id===v.vendedorId) ).reduce((a,b)=>a+b.valor,0);
+    return `<tr>
+      <td style="font-weight:600">${e.nome}</td>
+      <td>${membros.length} vendedor(es)</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--red)">${fmt(total)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removerEquipe('${e.id}')">Remover</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderTbVendas() {
+  const d = loadData();
+  const mes = getMesAtual();
+  const vendasMes = [...d.vendas.filter(v=>v.mes===mes)].sort((a,b)=>b.createdAt-a.createdAt);
+  const tb = document.getElementById('tb-vendas');
+  if (!vendasMes.length) {
+    tb.innerHTML = `<tr class="empty-row"><td colspan="6">Nenhuma venda lançada no mês</td></tr>`; return;
+  }
+  tb.innerHTML = vendasMes.map(v=>{
+    const vend = d.vendedores.find(x=>x.id===v.vendedorId);
+    const eq = vend ? d.equipes.find(e=>e.id===vend.equipeId) : null;
+    return `<tr>
+      <td style="font-weight:600">${vend?vend.nome:'Removido'}</td>
+      <td>${eq?`<span class="badge badge-red">${eq.nome}</span>`:'—'}</td>
+      <td style="font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--red)">${fmt(v.valor)}</td>
+      <td style="color:var(--text-muted)">${v.descricao||'—'}</td>
+      <td style="color:var(--text-muted)">${v.data||'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removerVenda('${v.id}')">Excluir</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── ACTIONS ───
+function salvarMeta() {
+  const val = parseFloat(document.getElementById('input-meta').value);
+  if (!val || val<=0) { toast('Informe um valor válido', false); return; }
+  const d = loadData(); d.meta = val; saveData(d);
+  toast('Meta salva com sucesso!'); renderAll();
+}
+
+function lancarVenda() {
+  const vendedorId = document.getElementById('sel-vendedor').value;
+  const valor = parseFloat(document.getElementById('input-valor').value);
+  const data = document.getElementById('input-data').value;
+  const descricao = document.getElementById('input-descricao').value.trim();
+  if (!vendedorId) { toast('Selecione um vendedor', false); return; }
+  if (!valor||valor<=0) { toast('Informe um valor válido', false); return; }
+  const d = loadData();
+  const mes = data ? data.substring(0,7) : getMesAtual();
+  d.vendas.push({ id:uid(), vendedorId, valor, data, descricao, mes, createdAt:Date.now() });
+  saveData(d);
+  document.getElementById('input-valor').value='';
+  document.getElementById('input-descricao').value='';
+  toast('Venda lançada!'); renderAll();
+}
+
+function limparVendas() {
+  const d = loadData();
+  const mes = getMesAtual();
+  d.vendas = d.vendas.filter(v=>v.mes!==mes);
+  saveData(d); toast('Vendas do mês removidas'); renderAll();
+}
+
+function removerVenda(id) {
+  if (!confirm('Remover esta venda?')) return;
+  const d = loadData(); d.vendas = d.vendas.filter(v=>v.id!==id); saveData(d); renderAll();
+}
+
+function cadastrarVendedor() {
+  const nome = document.getElementById('input-vend-nome').value.trim();
+  const equipeId = document.getElementById('sel-vend-equipe').value;
+  if (!nome) { toast('Informe o nome', false); return; }
+  const d = loadData();
+  d.vendedores.push({ id:uid(), nome, equipeId });
+  saveData(d);
+  document.getElementById('input-vend-nome').value='';
+  toast('Vendedor cadastrado!'); renderAll();
+}
+
+function removerVendedor(id) {
+  if (!confirm('Remover vendedor e suas vendas?')) return;
+  const d = loadData();
+  d.vendedores = d.vendedores.filter(v=>v.id!==id);
+  d.vendas = d.vendas.filter(v=>v.vendedorId!==id);
+  saveData(d); renderAll();
+}
+
+function cadastrarEquipe() {
+  const nome = document.getElementById('input-eq-nome').value.trim();
+  if (!nome) { toast('Informe o nome da equipe', false); return; }
+  const d = loadData();
+  if (d.equipes.find(e=>e.nome.toLowerCase()===nome.toLowerCase())) { toast('Equipe já existe', false); return; }
+  d.equipes.push({ id:uid(), nome });
+  saveData(d);
+  document.getElementById('input-eq-nome').value='';
+  toast('Equipe cadastrada!'); renderAll();
+}
+
+function removerEquipe(id) {
+  if (!confirm('Remover equipe? Os vendedores ficarão sem equipe.')) return;
+  const d = loadData();
+  d.equipes = d.equipes.filter(e=>e.id!==id);
+  d.vendedores = d.vendedores.map(v=> v.equipeId===id ? {...v,equipeId:''} : v);
+  saveData(d); renderAll();
+}
+
+// ─── SESSÃO ───
+// O admin verifica a sessão do dashboard — login único
+const SESSION_KEY = 'vendamax_dash_auth';
+
+if (!sessionStorage.getItem(SESSION_KEY)) {
+  // Não logado — redireciona para o dashboard (que tem o login)
+  window.location.replace('dashboard.html');
+}
+
+function logout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  window.location.replace('dashboard.html');
+}
+
+// ─── INIT ───
+const today = new Date().toISOString().slice(0,10);
+document.getElementById('input-data').value = today;
+
+renderAll();
+</script>
+</body>
+</html>

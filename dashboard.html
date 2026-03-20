@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard de Vendas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --red: #E8000D; --red-dark: #9B0009; --red-subtle: rgba(232,0,13,0.08);
+    --black: #0A0A0A; --surface: #111111; --surface2: #1A1A1A; --surface3: #222222;
+    --border: rgba(255,255,255,0.07); --border-red: rgba(232,0,13,0.3);
+    --text: #FFFFFF; --text-muted: rgba(255,255,255,0.45); --text-dim: rgba(255,255,255,0.25);
+    --gold: #FFB800; --silver: #C0C0C0; --bronze: #CD7F32;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; background:var(--black); color:var(--text); font-family:'Barlow',sans-serif; overflow:hidden; }
+  body { display:flex; flex-direction:column; height:100vh; }
+
+  /* LOGIN */
+  #login-screen { position:fixed; inset:0; background:var(--black); display:flex; align-items:center; justify-content:center; z-index:9999; }
+  #login-screen.hidden { display:none; }
+  .login-box { width:360px; background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--red); border-radius:14px; padding:40px 36px; display:flex; flex-direction:column; gap:20px; }
+  .login-logo { font-family:'Bebas Neue',sans-serif; font-size:34px; letter-spacing:4px; color:var(--red); text-align:center; line-height:1; }
+  .login-logo span { color:var(--text); }
+  .login-subtitle { text-align:center; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin-top:-12px; }
+  .login-fields { display:flex; flex-direction:column; gap:14px; }
+  .login-field { display:flex; flex-direction:column; gap:6px; }
+  .login-label { font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); }
+  .login-input { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px 14px; color:var(--text); font-family:'Barlow',sans-serif; font-size:15px; outline:none; transition:border-color .15s; }
+  .login-input:focus { border-color:var(--border-red); background:var(--surface3); }
+  .login-btn { width:100%; padding:13px; background:var(--red); color:#fff; border:none; border-radius:8px; font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:background .15s; margin-top:4px; }
+  .login-btn:hover { background:#FF1A24; }
+  .login-error { text-align:center; font-size:12px; font-weight:600; color:#EF4444; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:7px; padding:10px; display:none; }
+  .login-error.visible { display:block; }
+  .login-footer { text-align:center; font-size:11px; color:var(--text-dim); }
+
+  /* LOADER */
+  #db-loading { position:fixed; inset:0; background:var(--black); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; z-index:8888; }
+  #db-loading.hidden { display:none; }
+  .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--red); border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .db-loading-text { font-family:'Bebas Neue',sans-serif; font-size:14px; letter-spacing:3px; color:var(--text-muted); }
+
+  /* NAVBAR */
+  nav { background:var(--surface); border-bottom:1px solid var(--border-red); padding:0 28px; display:flex; align-items:center; gap:20px; height:76px; position:relative; z-index:10; flex-shrink:0; }
+  nav::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--red) 0%,transparent 100%); }
+  .nav-logo { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:3px; color:var(--red); flex-shrink:0; }
+  .nav-logo span { color:var(--text); }
+  .nav-meta-card { background:var(--surface2); border:1px solid var(--border-red); border-radius:10px; padding:10px 18px; display:flex; flex-direction:column; gap:2px; min-width:200px; }
+  .nav-meta-label { font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); }
+  .nav-meta-value { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--red); letter-spacing:1px; }
+  .nav-progress-wrap { flex:1; max-width:500px; }
+  .nav-progress-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .nav-progress-label { font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); }
+  .nav-progress-pct { font-family:'Bebas Neue',sans-serif; font-size:20px; color:var(--red); }
+  .progress-track { height:10px; background:var(--surface3); border-radius:6px; position:relative; }
+  .progress-bar { height:100%; background:linear-gradient(90deg,var(--red-dark),var(--red)); border-radius:6px; transition:width 1s ease; position:relative; }
+  .progress-bar::after { content:''; position:absolute; right:-1px; top:-2px; bottom:-2px; width:3px; background:#fff; border-radius:2px; box-shadow:0 0 8px var(--red); }
+  .nav-spacer { flex:1; }
+  .nav-clock { text-align:right; flex-shrink:0; }
+  .clock-time { font-family:'Bebas Neue',sans-serif; font-size:32px; letter-spacing:3px; color:var(--text); line-height:1; }
+  .clock-date { font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); margin-top:2px; }
+  .lock-btn { display:flex; align-items:center; justify-content:center; width:38px; height:38px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; cursor:pointer; transition:all .15s; flex-shrink:0; text-decoration:none; }
+  .lock-btn:hover { border-color:var(--border-red); background:var(--red-subtle); }
+  .lock-btn svg { width:16px; height:16px; stroke:var(--text-muted); transition:stroke .15s; }
+  .lock-btn:hover svg { stroke:var(--red); }
+
+  /* TABS */
+  .tabs-bar { display:flex; background:var(--surface); border-bottom:1px solid var(--border); padding:0 28px; flex-shrink:0; }
+  .tab-btn { font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); background:none; border:none; border-bottom:3px solid transparent; padding:12px 24px; cursor:pointer; transition:all .2s; }
+  .tab-btn.active { color:var(--text); border-bottom-color:var(--red); }
+  .tab-btn:hover:not(.active) { color:var(--text); }
+
+  /* MAIN */
+  main { overflow:hidden; position:relative; flex:1; min-height:0; }
+  .tab-panel { display:none; height:100%; padding:20px 24px; gap:16px; }
+  .tab-panel.active { display:grid; }
+  #panel-vendedores, #panel-equipes { grid-template-columns:280px 1fr; grid-template-rows:1fr; }
+  .left-col { display:flex; flex-direction:column; gap:14px; }
+  .section-title { font-family:'Bebas Neue',sans-serif; font-size:13px; letter-spacing:3px; color:var(--text-muted); text-transform:uppercase; display:flex; align-items:center; gap:8px; }
+  .section-title::before { content:''; display:block; width:3px; height:14px; background:var(--red); border-radius:2px; }
+  .top5-card { background:var(--surface); border:1px solid var(--border); border-top:2px solid var(--red); border-radius:10px; padding:16px; flex:1; overflow:hidden; }
+  .top5-list { margin-top:12px; display:flex; flex-direction:column; gap:8px; }
+  .top5-item { display:flex; align-items:center; gap:10px; padding:9px 12px; background:var(--surface2); border-radius:8px; border:1px solid var(--border); }
+  .top5-item:first-child { background:rgba(232,0,13,0.08); border-color:var(--border-red); }
+  .rank-badge { font-family:'Bebas Neue',sans-serif; font-size:18px; width:24px; text-align:center; flex-shrink:0; }
+  .rank-1{color:var(--gold);} .rank-2{color:var(--silver);} .rank-3{color:var(--bronze);} .rank-other{color:var(--text-dim);}
+  .top5-name { flex:1; font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .top5-team-tag { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--red); background:var(--red-subtle); border:1px solid var(--border-red); border-radius:4px; padding:2px 6px; flex-shrink:0; }
+  .top5-value { font-family:'Bebas Neue',sans-serif; font-size:17px; flex-shrink:0; }
+  .top5-item:first-child .top5-value { color:var(--red); }
+  .right-col { display:flex; flex-direction:column; gap:14px; overflow:hidden; }
+  .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px 20px; flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .chart-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .chart-total-label { font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); }
+  .chart-total-value { font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--red); letter-spacing:1px; }
+  .chart-wrap { flex:1; position:relative; min-height:0; }
+  .empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:8px; }
+  .empty-state-icon { font-size:32px; opacity:.3; }
+  .empty-state-text { font-size:13px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); opacity:.5; }
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">VENDA<span>MAX</span></div>
+    <div class="login-subtitle">Dashboard de Vendas</div>
+    <div class="login-fields">
+      <div class="login-field">
+        <label class="login-label">Usuário</label>
+        <input type="text" id="login-user" class="login-input" placeholder="usuario" autocomplete="username"
+          onkeydown="if(event.key==='Enter') document.getElementById('login-pass').focus()">
+      </div>
+      <div class="login-field">
+        <label class="login-label">Senha</label>
+        <input type="password" id="login-pass" class="login-input" placeholder="••••••••" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter') tentarLogin()">
+      </div>
+    </div>
+    <div class="login-error" id="login-error">Usuário ou senha incorretos</div>
+    <button class="login-btn" onclick="tentarLogin()">Entrar</button>
+    <div class="login-footer">VendaMax &copy; 2026</div>
+  </div>
+</div>
+
+<div id="db-loading">
+  <div class="spinner"></div>
+  <div class="db-loading-text">Carregando dados...</div>
+</div>
+
+<nav>
+  <div class="nav-logo">VENDA<span>MAX</span></div>
+  <div class="nav-meta-card">
+    <span class="nav-meta-label">Meta do Mês</span>
+    <span class="nav-meta-value" id="nav-meta-value">R$ 0</span>
+  </div>
+  <div class="nav-progress-wrap">
+    <div class="nav-progress-header">
+      <span class="nav-progress-label">Progresso Geral</span>
+      <span class="nav-progress-pct" id="nav-pct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-bar" id="nav-bar" style="width:0%"></div>
+    </div>
+  </div>
+  <div class="nav-spacer"></div>
+  <div class="nav-clock">
+    <div class="clock-time" id="clock-time">00:00:00</div>
+    <div class="clock-date" id="clock-date">--</div>
+  </div>
+  <a href="admin.html" class="lock-btn" title="Painel Admin">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  </a>
+</nav>
+
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('vendedores')">Vendedores</button>
+  <button class="tab-btn" onclick="switchTab('equipes')">Equipes</button>
+</div>
+
+<main>
+  <div class="tab-panel active" id="panel-vendedores">
+    <div class="left-col">
+      <div class="section-title">Top 5 Vendedores</div>
+      <div class="top5-card">
+        <div class="top5-list" id="top5-vendedores">
+          <div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">Sem dados ainda</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="right-col">
+      <div class="section-title">Ranking Top 15 — Vendas por Vendedor</div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <span></span>
+          <div class="chart-total">
+            <div class="chart-total-label">Total Geral</div>
+            <div class="chart-total-value" id="total-vendedores">R$ 0</div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-vendedores"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="panel-equipes">
+    <div class="left-col">
+      <div class="section-title">Top 5 Equipes</div>
+      <div class="top5-card">
+        <div class="top5-list" id="top5-equipes">
+          <div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-text">Sem dados ainda</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="right-col">
+      <div class="section-title">Ranking — Vendas por Equipe</div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <span></span>
+          <div class="chart-total">
+            <div class="chart-total-label">Total Geral</div>
+            <div class="chart-total-value" id="total-equipes">R$ 0</div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-equipes"></canvas></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ================================================================
+// ⚙️  CONFIGURAÇÕES — ALTERE AQUI O LOGIN E SENHA
+// ================================================================
+const SUPABASE_URL = 'https://hgvhjccsjuvyclalxcai.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_tZP6-UNjJXvNULO92Dxnfw_v54iry1g';
+
+const DASH_USER   = 'adm.america';         // ← altere o usuário
+const DASH_PASS   = 'admamerica2026';  // ← altere a senha
+// ================================================================
+
+const SESSION_KEY = 'vendamax_dash_auth';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let state = { meta:0, vendedores:[], equipes:[], vendas:[] };
+let chartV = null, chartE = null;
+
+// ─── LOGIN ───
+function tentarLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err  = document.getElementById('login-error');
+  if (user === DASH_USER && pass === DASH_PASS) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('login-screen').classList.add('hidden');
+    err.classList.remove('visible');
+    iniciar();
+  } else {
+    err.classList.add('visible');
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-pass').focus();
+  }
+}
+
+if (!sessionStorage.getItem(SESSION_KEY)) {
+  document.getElementById('db-loading').classList.add('hidden');
+  setTimeout(() => document.getElementById('login-user').focus(), 100);
+} else {
+  document.getElementById('login-screen').classList.add('hidden');
+  iniciar();
+}
+
+// ─── CLOCK ───
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock-time').textContent =
+    [now.getHours(),now.getMinutes(),now.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+  const dias  = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  document.getElementById('clock-date').textContent =
+    `${dias[now.getDay()]}, ${now.getDate()} ${meses[now.getMonth()]} ${now.getFullYear()}`;
+}
+setInterval(updateClock, 1000);
+// Recarrega a página a cada 5 minutos
+setInterval(() => location.reload(), 5 * 60 * 1000);
+updateClock();
+
+// ─── HELPERS ───
+const fmt = v => 'R$ ' + Number(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+const getMes = () => { const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`; };
+
+// ─── CARREGAR DADOS ───
+async function carregarDados() {
+  const mes = getMes();
+  const [r1, r2, r3, r4] = await Promise.all([
+    sb.from('equipes').select('*').order('nome'),
+    sb.from('vendedores').select('*').order('nome'),
+    sb.from('metas').select('*').eq('mes', mes).maybeSingle(),
+    sb.from('vendas').select('*').eq('mes', mes),
+  ]);
+  state.equipes    = r1.data || [];
+  state.vendedores = r2.data || [];
+  state.meta       = r3.data?.valor || 0;
+  state.vendas     = r4.data || [];
+}
+
+// ─── CHARTS ───
+const chartOpts = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{ legend:{display:false}, tooltip:{
+    backgroundColor:'#1A1A1A', borderColor:'rgba(232,0,13,0.4)', borderWidth:1,
+    titleColor:'#fff', bodyColor:'#fff',
+    callbacks:{ label: ctx => ' ' + fmt(ctx.parsed.y||ctx.parsed.x) }
+  }},
+  scales:{
+    x:{ ticks:{color:'rgba(255,255,255,0.5)',font:{family:"'Barlow Condensed'",weight:'600',size:11}}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.08)'} },
+    y:{ ticks:{color:'rgba(255,255,255,0.5)',font:{family:"'Barlow Condensed'",size:11},callback:v=>fmt(v)}, grid:{color:'rgba(255,255,255,0.06)'}, border:{color:'rgba(255,255,255,0.08)'} }
+  },
+  animation:{duration:800,easing:'easeInOutQuart'}
+};
+
+function renderChartVendedores(labels, values) {
+  const ctx = document.getElementById('chart-vendedores').getContext('2d');
+  const g = ctx.createLinearGradient(0,0,0,300);
+  g.addColorStop(0,'#E8000D'); g.addColorStop(1,'rgba(232,0,13,0.3)');
+  if (chartV) chartV.destroy();
+  chartV = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{
+    data:values,
+    backgroundColor: labels.map((_,i)=>i<3?g:'rgba(232,0,13,0.25)'),
+    borderColor: labels.map((_,i)=>i<3?'#E8000D':'rgba(232,0,13,0.4)'),
+    borderWidth: labels.map((_,i)=>i<3?2:1),
+    borderRadius:5, borderSkipped:false
+  }]}, options:chartOpts });
+}
+
+function renderChartEquipes(labels, values) {
+  const ctx = document.getElementById('chart-equipes').getContext('2d');
+  if (chartE) chartE.destroy();
+  const colors = ['#E8000D','#BF0009','#960007','#6D0005','#440003'];
+  chartE = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{
+    data:values,
+    backgroundColor: labels.map((_,i)=>colors[i]||'rgba(232,0,13,0.3)'),
+    borderColor:'#E8000D', borderWidth:1, borderRadius:6, borderSkipped:false
+  }]}, options:chartOpts });
+}
+
+// ─── RENDER ───
+function render() {
+  const { meta, vendedores, equipes, vendas } = state;
+  const totV = {}, totE = {};
+  vendas.forEach(v => {
+    totV[v.vendedor_id] = (totV[v.vendedor_id]||0) + Number(v.valor);
+    const vend = vendedores.find(x=>x.id===v.vendedor_id);
+    if (vend?.equipe_id) totE[vend.equipe_id] = (totE[vend.equipe_id]||0) + Number(v.valor);
+  });
+
+  const totalGeral = Object.values(totV).reduce((a,b)=>a+b,0);
+  const pct = meta>0 ? Math.min(100,Math.round(totalGeral/meta*100)) : 0;
+
+  document.getElementById('nav-meta-value').textContent = fmt(meta);
+  document.getElementById('nav-pct').textContent = pct+'%';
+  document.getElementById('nav-bar').style.width = pct+'%';
+  document.getElementById('total-vendedores').textContent = fmt(totalGeral);
+  document.getElementById('total-equipes').textContent = fmt(Object.values(totE).reduce((a,b)=>a+b,0));
+
+  const sorted = Object.entries(totV)
+    .map(([id,val])=>({id,val,vend:vendedores.find(x=>x.id===id)}))
+    .filter(x=>x.vend).sort((a,b)=>b.val-a.val);
+
+  const ri = ['rank-1','rank-2','rank-3','rank-other','rank-other'];
+  const top5El = document.getElementById('top5-vendedores');
+  top5El.innerHTML = sorted.length ? sorted.slice(0,5).map((item,i)=>{
+    const eq = equipes.find(e=>e.id===item.vend.equipe_id);
+    return `<div class="top5-item">
+      <span class="rank-badge ${ri[i]}">${i+1}</span>
+      <span class="top5-name">${item.vend.nome}</span>
+      ${eq?`<span class="top5-team-tag">${eq.nome.substring(0,8)}</span>`:''}
+      <span class="top5-value">${fmt(item.val)}</span>
+    </div>`;
+  }).join('') : `<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">Sem dados ainda</div></div>`;
+
+  const top15 = sorted.slice(0,15);
+  if (top15.length) renderChartVendedores(top15.map(x=>x.vend.nome.split(' ')[0]), top15.map(x=>x.val));
+
+  const sortedE = Object.entries(totE)
+    .map(([id,val])=>({id,val,eq:equipes.find(x=>x.id===id)}))
+    .filter(x=>x.eq).sort((a,b)=>b.val-a.val);
+
+  const top5EqEl = document.getElementById('top5-equipes');
+  top5EqEl.innerHTML = sortedE.length ? sortedE.slice(0,5).map((item,i)=>
+    `<div class="top5-item">
+      <span class="rank-badge ${ri[i]}">${i+1}</span>
+      <span class="top5-name">${item.eq.nome}</span>
+      <span class="top5-value">${fmt(item.val)}</span>
+    </div>`
+  ).join('') : `<div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-text">Sem dados ainda</div></div>`;
+
+  if (sortedE.length) renderChartEquipes(sortedE.map(x=>x.eq.nome), sortedE.map(x=>x.val));
+}
+
+// ─── TABS ───
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(tab)));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+tab));
+}
+
+// ─── REALTIME ───
+function iniciarRealtime() {
+  sb.channel('realtime-dashboard')
+    .on('postgres_changes',{event:'*',schema:'public',table:'vendas'},   async()=>{await carregarDados();render();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'metas'},    async()=>{await carregarDados();render();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'vendedores'},async()=>{await carregarDados();render();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'equipes'},  async()=>{await carregarDados();render();})
+    .subscribe();
+}
+
+// ─── INICIAR ───
+async function iniciar() {
+  document.getElementById('db-loading').classList.remove('hidden');
+  await carregarDados();
+  document.getElementById('db-loading').classList.add('hidden');
+  render();
+  iniciarRealtime();
+}
+</script>
+</body>
+</html>
