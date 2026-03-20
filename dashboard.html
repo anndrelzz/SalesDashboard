@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600;700&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -59,7 +60,6 @@
   .nav-progress-pct { font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--red); }
   .progress-track { height:8px; background:var(--surface3); border-radius:6px; position:relative; }
   .progress-bar { height:100%; background:linear-gradient(90deg,var(--red-dark),var(--red)); border-radius:6px; transition:width 1s ease; position:relative; }
-  .progress-bar::after { content:''; position:absolute; right:-1px; top:-2px; bottom:-2px; width:3px; background:#fff; border-radius:2px; box-shadow:0 0 8px var(--red); }
 
   /* MARKET CARD */
   .nav-market-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 18px; display:flex; flex-direction:column; gap:8px; flex:1; min-width:0; overflow:hidden; }
@@ -105,18 +105,13 @@
   .rank-badge { font-family:'Bebas Neue',sans-serif; font-size:18px; width:24px; text-align:center; flex-shrink:0; }
   .rank-1{color:var(--gold);} .rank-2{color:var(--silver);} .rank-3{color:var(--bronze);} .rank-other{color:var(--text-dim);}
   .top5-name { flex:1; font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .top5-team-tag { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--red); background:var(--red-subtle); border:1px solid var(--border-red); border-radius:4px; padding:2px 6px; flex-shrink:0; }
   .top5-value { font-family:'Bebas Neue',sans-serif; font-size:17px; flex-shrink:0; }
-  .top5-item:first-child .top5-value { color:var(--red); }
   .right-col { display:flex; flex-direction:column; gap:14px; overflow:hidden; }
   .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px 20px; flex:1; display:flex; flex-direction:column; overflow:hidden; }
   .chart-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
-  .chart-total-label { font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); }
   .chart-total-value { font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--red); letter-spacing:1px; }
   .chart-wrap { flex:1; position:relative; min-height:0; }
   .empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; gap:8px; }
-  .empty-state-icon { font-size:32px; opacity:.3; }
-  .empty-state-text { font-size:13px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); opacity:.5; }
 </style>
 </head>
 <body>
@@ -130,13 +125,11 @@
     <div class="login-fields">
       <div class="login-field">
         <label class="login-label">E-mail</label>
-        <input type="email" id="login-user" class="login-input" placeholder="seu@email.com" autocomplete="username"
-          onkeydown="if(event.key==='Enter') document.getElementById('login-pass').focus()">
+        <input type="email" id="login-user" class="login-input" placeholder="seu@email.com">
       </div>
       <div class="login-field">
         <label class="login-label">Senha</label>
-        <input type="password" id="login-pass" class="login-input" placeholder="••••••••" autocomplete="current-password"
-          onkeydown="if(event.key==='Enter') tentarLogin()">
+        <input type="password" id="login-pass" class="login-input" placeholder="••••••••">
       </div>
     </div>
     <div class="login-error" id="login-error">Usuário ou senha incorretos</div>
@@ -197,20 +190,15 @@
     <div class="left-col">
       <div class="section-title">Top 5 Vendedores</div>
       <div class="top5-card">
-        <div class="top5-list" id="top5-vendedores">
-          <div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">Sem dados ainda</div></div>
-        </div>
+        <div class="top5-list" id="top5-vendedores"></div>
       </div>
     </div>
     <div class="right-col">
       <div class="section-title">Ranking Top 15 — Vendas por Vendedor</div>
       <div class="chart-card">
-        <div class="chart-header">
-          <span></span>
-          <div class="chart-total">
-            <div class="chart-total-label">Total Geral</div>
-            <div class="chart-total-value" id="total-vendedores">R$ 0</div>
-          </div>
+        <div style="text-align:right;margin-bottom:10px">
+          <div style="font-size:10px;color:var(--text-muted);letter-spacing:1px">TOTAL GERAL VENDIDO</div>
+          <div class="chart-total-value" id="total-vendedores">R$ 0</div>
         </div>
         <div class="chart-wrap"><canvas id="chart-vendedores"></canvas></div>
       </div>
@@ -219,22 +207,17 @@
 
   <div class="tab-panel" id="panel-equipes">
     <div class="left-col">
-      <div class="section-title">Top 5 Equipes</div>
+      <div class="section-title">Performance por Equipe</div>
       <div class="top5-card">
-        <div class="top5-list" id="top5-equipes">
-          <div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-text">Sem dados ainda</div></div>
-        </div>
+        <div class="top5-list" id="top5-equipes"></div>
       </div>
     </div>
     <div class="right-col">
       <div class="section-title">Ranking — Vendas por Equipe</div>
       <div class="chart-card">
-        <div class="chart-header">
-          <span></span>
-          <div class="chart-total">
-            <div class="chart-total-label">Total Geral</div>
-            <div class="chart-total-value" id="total-equipes">R$ 0</div>
-          </div>
+        <div style="text-align:right;margin-bottom:10px">
+          <div style="font-size:10px;color:var(--text-muted);letter-spacing:1px">TOTAL ACUMULADO</div>
+          <div class="chart-total-value" id="total-equipes">R$ 0</div>
         </div>
         <div class="chart-wrap"><canvas id="chart-equipes"></canvas></div>
       </div>
@@ -244,170 +227,229 @@
 
 <script>
 // ================================================================
-// ⚙️  CONFIGURAÇÕES
+// ⚙️ CONFIGURAÇÕES
 // ================================================================
 const SUPABASE_URL = 'https://hgvhjccsjuvyclalxcai.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhndmhqY2NzanV2eWNsYWx4Y2FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDQxMTksImV4cCI6MjA4OTUyMDExOX0.8RfTEfF4NM_1amwWZirTxshnYeCKtxR28cDOFuWknAY';
-const HG_KEY = '3fe86be6'; 
-// ================================================================
+const BRAPI_TOKEN = 'iZJ3YKjArMisY6wTbJ1CBs';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let state = { meta:0, vendedores:[], equipes:[], vendas:[] };
 let chartV = null, chartE = null;
 
-// --- MERCADO FINANCEIRO (RESTAURADO E CORRIGIDO) ---
-window.atualizarCardsMercado = function(data) {
-  const container = document.getElementById('market-items');
-  if (!container) return;
-  try {
-    const fin = data.results;
-    const items = [];
-    if (fin.stocks?.IBOVESPA) items.push(renderMarketItem("IBOVESPA", fin.stocks.IBOVESPA.points.toLocaleString('pt-BR'), fin.stocks.IBOVESPA.variation));
-    if (fin.stocks?.NASDAQ)   items.push(renderMarketItem("NASDAQ", fin.stocks.NASDAQ.points.toLocaleString('pt-BR'), fin.stocks.NASDAQ.variation));
-    if (fin.currencies?.USD)  items.push(renderMarketItem("DÓLAR", "R$ " + fin.currencies.USD.buy.toFixed(2).replace('.',','), fin.currencies.USD.variation));
-    if (fin.currencies?.EUR)  items.push(renderMarketItem("EURO", "R$ " + fin.currencies.EUR.buy.toFixed(2).replace('.',','), fin.currencies.EUR.variation));
-    if (fin.taxes?.length > 0) {
-      items.push(`<div class="market-item"><span class="market-item-name">CDI</span><span class="market-item-value">${fin.taxes[0].cdi.toFixed(2).replace('.',',')}%</span></div>`);
-      items.push(`<div class="market-item"><span class="market-item-name">SELIC</span><span class="market-item-value">${fin.taxes[0].selic.toFixed(2).replace('.',',')}%</span></div>`);
-    }
-    container.innerHTML = items.length ? items.join('') : 'Sem dados';
-  } catch(e) { container.innerHTML = '<span class="market-loading">Indisponível</span>'; }
-};
-
-function renderMarketItem(nome, valor, varct) {
-  const cls = varct >= 0 ? 'up' : 'down';
-  const sig = varct >= 0 ? '+' : '';
-  return `<div class="market-item">
-    <span class="market-item-name">${nome}</span>
-    <span class="market-item-value">${valor}</span>
-    <span class="market-item-change ${cls}">${sig}${varct.toFixed(2)}%</span>
-  </div>`;
-}
-
-function carregarMercado() {
-  const old = document.getElementById('hg-script');
-  if (old) old.remove();
-  const script = document.createElement('script');
-  script.id = 'hg-script';
-  script.src = `https://api.hgbrasil.com/finance?format=jsonp&callback=atualizarCardsMercado&key=${HG_KEY}&_=${Date.now()}`;
-  document.body.appendChild(script);
-}
-
-// --- LOGIN (RESTAURADO) ---
+// --- 1. LOGIN ---
 window.tentarLogin = async function() {
   const email = document.getElementById('login-user').value.trim();
-  const pass  = document.getElementById('login-pass').value;
-  const err   = document.getElementById('login-error');
-  const btn   = document.getElementById('btn-entrar');
-  if(!email || !pass) return;
-  btn.textContent = 'Entrando...'; btn.disabled = true;
-  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  const password = document.getElementById('login-pass').value;
+  const errorEl = document.getElementById('login-error');
+  const btn = document.getElementById('btn-entrar');
+
+  if(!email || !password) return;
+  btn.disabled = true;
+  btn.textContent = 'Autenticando...';
+
+  const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) {
-    err.classList.add('visible'); btn.textContent = 'Entrar'; btn.disabled = false;
+    errorEl.classList.add('visible');
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
   } else {
     sessionStorage.setItem('vendamax_dash_auth', '1');
     document.getElementById('login-screen').classList.add('hidden');
     iniciar();
   }
+};
+
+// --- 2. MERCADO FINANCEIRO ---
+async function carregarMercado() {
+  const container = document.getElementById('market-items');
+  if (!container) return;
+  const items = [];
+
+  try {
+    const resA = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL,EUR-BRL');
+    const dataA = await resA.json();
+    
+    if(dataA.USDBRL) items.push(renderMarketItem("DÓLAR", "R$ "+Number(dataA.USDBRL.bid).toFixed(2), Number(dataA.USDBRL.pctChange)));
+    if(dataA.EURBRL) items.push(renderMarketItem("EURO", "R$ "+Number(dataA.EURBRL.bid).toFixed(2), Number(dataA.EURBRL.pctChange)));
+    
+    items.push(`<div class="market-item"><span class="market-item-name">SELIC</span><span class="market-item-value">10,75%</span></div>`);
+    items.push(`<div class="market-item"><span class="market-item-name">CDI</span><span class="market-item-value">10,65%</span></div>`);
+    items.push(`<div class="market-item"><span class="market-item-name">IPCA</span><span class="market-item-value">4,42%</span></div>`);
+
+    const resB = await fetch(`https://brapi.dev/api/quote/^BVSP,^IXIC?token=${BRAPI_TOKEN}`);
+    const dataB = await resB.json();
+    
+    if(dataB.results) {
+      dataB.results.forEach(b => {
+        const symbol = b.symbol === '^BVSP' ? 'IBOV' : 'NASDAQ';
+        items.push(renderMarketItem(symbol, b.regularMarketPrice.toLocaleString('pt-BR'), b.regularMarketChangePercent));
+      });
+    }
+    container.innerHTML = items.join('');
+  } catch(e) {
+    if(items.length) container.innerHTML = items.join('');
+    else container.innerHTML = '<span class="market-loading">Indisponível</span>';
+  }
 }
 
-// --- CLOCK (RESTAURADO) ---
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock-time').textContent = [now.getHours(),now.getMinutes(),now.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
-  const dias  = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  document.getElementById('clock-date').textContent = `${dias[now.getDay()]}, ${now.getDate()} ${meses[now.getMonth()]} ${now.getFullYear()}`;
+function renderMarketItem(n, v, varct) {
+  const cls = varct >= 0 ? 'up' : 'down';
+  const sig = varct >= 0 ? '+' : '';
+  return `<div class="market-item"><span class="market-item-name">${n}</span><span class="market-item-value">${v}</span><span class="market-item-change ${cls}">${sig}${Number(varct).toFixed(2)}%</span></div>`;
 }
-setInterval(updateClock, 1000);
 
-// --- CARREGAR DADOS (RESTAURADO) ---
+// --- 3. CARREGAR DADOS ---
 async function carregarDados() {
   const mes = new Date().toISOString().substring(0,7);
   const [r1, r2, r3, r4] = await Promise.all([
     sb.from('equipes').select('*').order('nome'),
     sb.from('vendedores').select('*').order('nome'),
     sb.from('metas').select('*').eq('mes', mes).maybeSingle(),
-    sb.from('vendas').select('*').eq('mes', mes),
+    sb.from('vendas').select('*').eq('mes', mes)
   ]);
-  state.equipes = r1.data || []; state.vendedores = r2.data || []; state.meta = r3.data?.valor || 0; state.vendas = r4.data || [];
+  state = { equipes: r1.data||[], vendedores: r2.data||[], meta: r3.data?.valor||0, vendas: r4.data||[] };
 }
 
-// --- GRÁFICOS (RESTAURADO ORIGINAL) ---
+// --- 4. FORMATADOR ---
+function formatarValorBarra(valor) {
+  if (valor >= 1000000) {
+    return (valor / 1000000).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'MM';
+  } else if (valor >= 1000) {
+    return Math.round(valor / 1000) + 'K';
+  }
+  return valor.toLocaleString('pt-BR');
+}
+
+// --- 5. RENDERIZAÇÃO ---
 const chartOpts = {
   responsive:true, maintainAspectRatio:false,
-  plugins:{ legend:{display:false}, tooltip:{
-    backgroundColor:'#1A1A1A', borderColor:'rgba(232,0,13,0.4)', borderWidth:1,
-    titleColor:'#fff', bodyColor:'#fff',
-    callbacks:{ label: ctx => ' R$ ' + ctx.parsed.y.toLocaleString('pt-BR') }
-  }},
-  scales:{
-    x:{ ticks:{color:'rgba(255,255,255,0.5)',font:{family:"'Barlow Condensed'",weight:'600',size:11}}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.08)'} },
-    y:{ ticks:{color:'rgba(255,255,255,0.5)',font:{family:"'Barlow Condensed'",size:11},callback:v=>'R$ '+v.toLocaleString('pt-BR')}, grid:{color:'rgba(255,255,255,0.06)'}, border:{color:'rgba(255,255,255,0.08)'} }
+  plugins:{ 
+    legend:{display:false}, 
+    tooltip:{
+      backgroundColor:'#1A1A1A', borderColor:'rgba(232,0,13,0.4)', borderWidth:1,
+      callbacks:{ label: ctx => ' R$ ' + ctx.parsed.y.toLocaleString('pt-BR') }
+    },
+    datalabels: {
+      anchor: 'end', align: 'top', color: '#FFFFFF',
+      font: { family: "'Barlow Condensed'", weight: '700', size: 12 },
+      formatter: (value) => formatarValorBarra(value)
+    }
   },
-  animation:{duration:800,easing:'easeInOutQuart'}
+  layout: { padding: { top: 25 } },
+  scales:{
+    x:{ ticks:{color:'rgba(255,255,255,0.5)',font:{size:11}}, grid:{display:false} },
+    y:{ ticks:{color:'rgba(255,255,255,0.5)',callback: v=>'R$ '+v.toLocaleString('pt-BR')}, grid:{color:'rgba(255,255,255,0.05)'} }
+  }
 };
 
-function renderChartVendedores(labels, values) {
-  const ctx = document.getElementById('chart-vendedores').getContext('2d');
-  const g = ctx.createLinearGradient(0,0,0,300);
-  g.addColorStop(0,'#E8000D'); g.addColorStop(1,'rgba(232,0,13,0.3)');
-  if (chartV) chartV.destroy();
-  chartV = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{
-    data:values, backgroundColor: labels.map((_,i)=>i<3?g:'rgba(232,0,13,0.25)'),
-    borderColor: labels.map((_,i)=>i<3?'#E8000D':'rgba(232,0,13,0.4)'),
-    borderWidth: labels.map((_,i)=>i<3?2:1), borderRadius:5, borderSkipped:false
-  }]}, options:chartOpts });
-}
-
-function renderChartEquipes(labels, values) {
-  const ctx = document.getElementById('chart-equipes').getContext('2d');
-  if (chartE) chartE.destroy();
-  const colors = ['#E8000D','#BF0009','#960007','#6D0005','#440003'];
-  chartE = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{
-    data:values, backgroundColor: labels.map((_,i)=>colors[i]||'rgba(232,0,13,0.3)'),
-    borderColor:'#E8000D', borderWidth:1, borderRadius:6, borderSkipped:false
-  }]}, options:chartOpts });
-}
-
-// --- RENDER (RESTAURADO ORIGINAL) ---
 function render() {
   const { meta, vendedores, equipes, vendas } = state;
-  const totV = {}, totE = {};
+  const tV = {}, tE = {};
   vendas.forEach(v => {
-    totV[v.vendedor_id] = (totV[v.vendedor_id]||0) + Number(v.valor);
+    tV[v.vendedor_id] = (tV[v.vendedor_id]||0) + Number(v.valor);
     const vend = vendedores.find(x=>x.id===v.vendedor_id);
-    if (vend?.equipe_id) totE[vend.equipe_id] = (totE[vend.equipe_id]||0) + Number(v.valor);
+    if (vend?.equipe_id) tE[vend.equipe_id] = (tE[vend.equipe_id]||0) + Number(v.valor);
   });
-  const totalGeral = Object.values(totV).reduce((a,b)=>a+b,0);
-  const pct = meta>0 ? Math.min(100,Math.round(totalGeral/meta*100)) : 0;
+
+  const totG = Object.values(tV).reduce((a,b)=>a+b,0);
+  const pct = meta > 0 ? Math.min(100, Math.round((totG/meta)*100)) : 0;
+
   document.getElementById('nav-meta-value').textContent = 'R$ ' + meta.toLocaleString('pt-BR');
   document.getElementById('nav-pct').textContent = pct+'%';
   document.getElementById('nav-bar').style.width = pct+'%';
-  document.getElementById('total-vendedores').textContent = 'R$ ' + totalGeral.toLocaleString('pt-BR');
-  document.getElementById('total-equipes').textContent = 'R$ ' + Object.values(totE).reduce((a,b)=>a+b,0).toLocaleString('pt-BR');
-  const sorted = Object.entries(totV).map(([id,val])=>({id,val,v:vendedores.find(x=>x.id===id)})).filter(x=>x.v).sort((a,b)=>b.val-a.val);
+  document.getElementById('total-vendedores').textContent = 'R$ ' + totG.toLocaleString('pt-BR');
+  document.getElementById('total-equipes').textContent = 'R$ ' + Object.values(tE).reduce((a,b)=>a+b,0).toLocaleString('pt-BR');
+
+  const sv = Object.entries(tV).map(([id,val])=>({id,val,v:vendedores.find(x=>x.id===id)})).filter(x=>x.v).sort((a,b)=>b.val-a.val);
   const medals = ['🥇','🥈','🥉','4','5'];
-  document.getElementById('top5-vendedores').innerHTML = sorted.length ? sorted.slice(0,5).map((x,i)=>`
-    <div class="top5-item"><span class="rank-badge">${i<3?medals[i]:i+1}</span><span class="top5-name">${x.v.nome}</span><span class="top5-value">R$ ${x.val.toLocaleString('pt-BR')}</span></div>`).join('') : '<div class="empty-state">Sem dados</div>';
-  if (sorted.length) renderChartVendedores(sorted.slice(0,15).map(x=>x.v.nome.split(' ')[0]), sorted.slice(0,15).map(x=>x.val));
-  const sortedE = Object.entries(totE).map(([id,val])=>({id,val,e:equipes.find(x=>x.id===id)})).filter(x=>x.e).sort((a,b)=>b.val-a.val);
-  document.getElementById('top5-equipes').innerHTML = sortedE.length ? sortedE.slice(0,5).map((x,i)=>`
-    <div class="top5-item"><span class="rank-badge">${medals[i]||i+1}</span><span class="top5-name">${x.e.nome}</span><span class="top5-value">R$ ${x.val.toLocaleString('pt-BR')}</span></div>`).join('') : '<div class="empty-state">Sem dados</div>';
-  if (sortedE.length) renderChartEquipes(sortedE.map(x=>x.e.nome), sortedE.map(x=>x.val));
+  document.getElementById('top5-vendedores').innerHTML = sv.slice(0,5).map((x,i)=>`
+    <div class="top5-item">
+      <span class="rank-badge ${i<3?'rank-'+(i+1):'rank-other'}">${i<3?medals[i]:i+1}</span>
+      <span class="top5-name">${x.v.nome}</span>
+      <span class="top5-value">R$ ${x.val.toLocaleString('pt-BR')}</span>
+    </div>`).join('') || '<div class="empty-state">Sem dados</div>';
+
+  if (sv.length) {
+    const ctx = document.getElementById('chart-vendedores').getContext('2d');
+    if(chartV) chartV.destroy();
+    
+    chartV = new Chart(ctx, { 
+      type:'bar', 
+      plugins:[ChartDataLabels], 
+      data:{ 
+        labels: sv.slice(0,15).map(x=>x.v.nome.split(' ')[0]), 
+        datasets:[{ 
+          data: sv.slice(0,15).map(x=>x.val), 
+          backgroundColor: function(context) {
+            const chart = context.chart;
+            const {ctx, chartArea} = chart;
+            if (!chartArea) return null;
+            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, '#E8000D'); // Topo Vermelho vivo
+            gradient.addColorStop(1, 'rgba(232,0,13,0.4)'); // Base mais clara (ajustado de 0.1 para 0.4)
+            return gradient;
+          },
+          borderRadius:5 
+        }]
+      }, 
+      options:chartOpts 
+    });
+  }
+
+  const se = Object.entries(tE).map(([id,val])=>({id,val,e:equipes.find(x=>x.id===id)})).filter(x=>x.e).sort((a,b)=>b.val-a.val);
+  document.getElementById('top5-equipes').innerHTML = se.slice(0,5).map((x,i)=>`
+    <div class="top5-item">
+      <span class="rank-badge">${medals[i]||i+1}</span>
+      <span class="top5-name">${x.e.nome}</span>
+      <span class="top5-value">R$ ${x.val.toLocaleString('pt-BR')}</span>
+    </div>`).join('') || '<div class="empty-state">Sem dados</div>';
+
+  if (se.length) {
+    const ctxE = document.getElementById('chart-equipes').getContext('2d');
+    if(chartE) chartE.destroy();
+    chartE = new Chart(ctxE, { 
+      type:'bar', 
+      plugins:[ChartDataLabels], 
+      data:{ 
+        labels: se.map(x=>x.e.nome), 
+        datasets:[{ 
+          data: se.map(x=>x.val), 
+          backgroundColor: function(context) {
+            const chart = context.chart;
+            const {ctx, chartArea} = chart;
+            if (!chartArea) return null;
+            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, '#E8000D');
+            gradient.addColorStop(1, 'rgba(232,0,13,0.4)'); // Ajustado base para 0.4
+            return gradient;
+          },
+          borderRadius:5 
+        }]
+      }, 
+      options:chartOpts 
+    });
+  }
 }
 
-function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(tab)));
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+tab));
+function switchTab(t) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(t)));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+t));
 }
 
-// --- INICIAR ---
+function updateClock() {
+  const n = new Date();
+  document.getElementById('clock-time').textContent = n.toLocaleTimeString('pt-BR');
+  document.getElementById('clock-date').textContent = n.toLocaleDateString('pt-BR', {weekday:'long', day:'2-digit', month:'short', year:'numeric'});
+}
+
 async function iniciar() {
   document.getElementById('db-loading').classList.remove('hidden');
   try {
     await carregarDados(); render(); carregarMercado();
     sb.channel('realtime').on('postgres_changes',{event:'*',schema:'public',table:'vendas'},async()=>{await carregarDados();render();}).subscribe();
+    setInterval(carregarMercado, 15 * 60 * 1000); 
+    setInterval(updateClock, 1000);
   } finally { document.getElementById('db-loading').classList.add('hidden'); }
 }
 
