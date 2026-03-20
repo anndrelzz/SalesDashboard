@@ -62,23 +62,23 @@
   .progress-bar::after { content:''; position:absolute; right:-1px; top:-2px; bottom:-2px; width:3px; background:#fff; border-radius:2px; box-shadow:0 0 8px var(--red); }
 
   /* MARKET CARD */
-  .nav-market-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 14px; display:flex; flex-direction:column; gap:6px; flex-shrink:0; min-width:300px; max-width:420px; }
+  .nav-market-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 18px; display:flex; flex-direction:column; gap:8px; flex:1; min-width:0; overflow:hidden; }
   .market-label { font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); }
-  .market-items { display:flex; gap:14px; overflow-x:auto; scrollbar-width:none; }
+  .market-items { display:flex; gap:22px; overflow-x:auto; scrollbar-width:none; align-items:flex-start; }
   .market-items::-webkit-scrollbar { display:none; }
-  .market-item { display:flex; flex-direction:column; gap:1px; }
-  .market-item-name { font-size:9px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); }
-  .market-item-value { font-family:'Bebas Neue',sans-serif; font-size:16px; color:var(--text); letter-spacing:0.5px; line-height:1; }
+  .market-item { display:flex; flex-direction:column; gap:2px; flex-shrink:0; }
+  .market-item-name { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); }
+  .market-item-value { font-family:'Bebas Neue',sans-serif; font-size:20px; color:var(--text); letter-spacing:0.5px; line-height:1; }
   .market-item-value.up { color:#22C55E; }
   .market-item-value.down { color:var(--red); }
-  .market-item-change { font-size:9px; font-weight:600; }
+  .market-item-change { font-size:10px; font-weight:700; }
   .market-item-change.up { color:#22C55E; }
   .market-item-change.down { color:var(--red); }
   .market-loading { font-size:10px; color:var(--text-dim); letter-spacing:1px; }
 
-  .nav-clock { text-align:right; flex-shrink:0; }
-  .clock-time { font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:2px; color:var(--text); line-height:1; }
-  .clock-date { font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); margin-top:2px; }
+  .nav-clock { text-align:center; flex-shrink:0; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 16px; display:flex; flex-direction:column; justify-content:center; gap:3px; }
+  .clock-time { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:3px; color:var(--text); line-height:1; }
+  .clock-date { font-size:9px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
   .lock-btn { display:flex; align-items:center; justify-content:center; width:36px; height:36px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; cursor:pointer; transition:all .15s; flex-shrink:0; text-decoration:none; }
   .lock-btn:hover { border-color:var(--border-red); background:var(--red-subtle); }
   .lock-btn svg { width:15px; height:15px; stroke:var(--text-muted); transition:stroke .15s; }
