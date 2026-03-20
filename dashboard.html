@@ -249,6 +249,7 @@ async function tentarLogin() {
     document.getElementById('login-pass').focus();
   } else {
     err.classList.remove('visible');
+    sessionStorage.setItem('vendamax_dash_auth', '1');
     document.getElementById('login-screen').classList.add('hidden');
     iniciar();
   }
@@ -258,6 +259,7 @@ async function tentarLogin() {
 (async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
+    sessionStorage.setItem('vendamax_dash_auth', '1');
     document.getElementById('login-screen').classList.add('hidden');
     iniciar();
   } else {
