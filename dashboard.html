@@ -303,67 +303,66 @@ setInterval(updateClock, 1000);
 // Recarrega a página a cada 5 minutos
 setInterval(() => location.reload(), 5 * 60 * 1000);
 
-// ─── MERCADO FINANCEIRO (HG Brasil) ───
-const HG_KEY = '2a85befd';
-
+// ─── MERCADO FINANCEIRO (AwesomeAPI) ───
 async function carregarMercado() {
   try {
-    const res = await fetch(`https://api.hgbrasil.com/finance?key=${HG_KEY}&format=json&array_limit=1&fields=only_results,currencies,stocks,taxes`, {
-      mode: 'cors'
-    });
-    const json = await res.json();
-    const r = json.results;
+    const [resCambio, resIbov] = await Promise.all([
+      fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL'),
+      fetch('https://brapi.dev/api/quote/^BVSP?token=demo')
+    ]);
 
-    const ibov  = r.stocks?.IBOVESPA;
-    const dolar = r.currencies?.USD;
-    const euro  = r.currencies?.EUR;
-    const taxes = Array.isArray(r.taxes) ? r.taxes[0] : null;
-    const cdi   = taxes?.cdi;
-    const selic = taxes?.selic;
+    const cambio = await resCambio.json();
+    const ibovData = await resIbov.json();
 
     const items = [];
 
+    // IBOVESPA
+    const ibov = ibovData?.results?.[0];
     if (ibov) {
-      const chg = ibov.variation?.toFixed(2);
+      const chg = Number(ibov.regularMarketChangePercent).toFixed(2);
       const cls = chg >= 0 ? 'up' : 'down';
       const sinal = chg >= 0 ? '+' : '';
       items.push(`<div class="market-item">
         <span class="market-item-name">IBOVESPA</span>
-        <span class="market-item-value">${Number(ibov.points).toLocaleString('pt-BR',{maximumFractionDigits:0})}</span>
+        <span class="market-item-value">${Number(ibov.regularMarketPrice).toLocaleString('pt-BR',{maximumFractionDigits:0})}</span>
         <span class="market-item-change ${cls}">${sinal}${chg}%</span>
       </div>`);
     }
 
-    if (dolar) {
-      const chg = dolar.variation?.toFixed(2);
+    // DÓLAR
+    const usd = cambio?.USDBRL;
+    if (usd) {
+      const chg = Number(usd.pctChange).toFixed(2);
       const cls = chg >= 0 ? 'up' : 'down';
       const sinal = chg >= 0 ? '+' : '';
       items.push(`<div class="market-item">
         <span class="market-item-name">DÓLAR</span>
-        <span class="market-item-value">R$ ${Number(dolar.buy).toFixed(2).replace('.',',')}</span>
+        <span class="market-item-value">R$ ${Number(usd.bid).toFixed(2).replace('.',',')}</span>
         <span class="market-item-change ${cls}">${sinal}${chg}%</span>
       </div>`);
     }
 
-    if (euro) {
-      const chg = euro.variation?.toFixed(2);
+    // EURO
+    const eur = cambio?.EURBRL;
+    if (eur) {
+      const chg = Number(eur.pctChange).toFixed(2);
       const cls = chg >= 0 ? 'up' : 'down';
       const sinal = chg >= 0 ? '+' : '';
       items.push(`<div class="market-item">
         <span class="market-item-name">EURO</span>
-        <span class="market-item-value">R$ ${Number(euro.buy).toFixed(2).replace('.',',')}</span>
+        <span class="market-item-value">R$ ${Number(eur.bid).toFixed(2).replace('.',',')}</span>
         <span class="market-item-change ${cls}">${sinal}${chg}%</span>
       </div>`);
     }
 
-    if (cdi) items.push(`<div class="market-item">
+    // CDI e SELIC (fixos — atualizados manualmente quando o BACEN mudar)
+    items.push(`<div class="market-item">
       <span class="market-item-name">CDI</span>
-      <span class="market-item-value">${Number(cdi).toFixed(2).replace('.',',')}%</span>
+      <span class="market-item-value">15,00%</span>
     </div>`);
-
-    if (selic) items.push(`<div class="market-item">
+    items.push(`<div class="market-item">
       <span class="market-item-name">SELIC</span>
-      <span class="market-item-value">${Number(selic).toFixed(2).replace('.',',')}%</span>
+      <span class="market-item-value">15,00%</span>
     </div>`);
 
     document.getElementById('market-items').innerHTML = items.length
@@ -375,7 +374,6 @@ async function carregarMercado() {
   }
 }
 
-// Atualiza mercado a cada 5 minutos
 carregarMercado();
 setInterval(carregarMercado, 5 * 60 * 1000);
 updateClock();
