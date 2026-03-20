@@ -365,14 +365,16 @@ function render() {
     .map(([id,val])=>({id,val,vend:vendedores.find(x=>x.id===id)}))
     .filter(x=>x.vend).sort((a,b)=>b.val-a.val);
 
+  const medals = ['🥇','🥈','🥉','4','5'];
   const ri = ['rank-1','rank-2','rank-3','rank-other','rank-other'];
   const top5El = document.getElementById('top5-vendedores');
   top5El.innerHTML = sorted.length ? sorted.slice(0,5).map((item,i)=>{
-    const eq = equipes.find(e=>e.id===item.vend.equipe_id);
+    const medalIcon = i < 3
+      ? `<span style="font-size:22px;line-height:1;flex-shrink:0">${medals[i]}</span>`
+      : `<span class="rank-badge rank-other">${medals[i]}</span>`;
     return `<div class="top5-item">
-      <span class="rank-badge ${ri[i]}">${i+1}</span>
+      ${medalIcon}
       <span class="top5-name">${item.vend.nome}</span>
-      ${eq?`<span class="top5-team-tag">${eq.nome.substring(0,8)}</span>`:''}
       <span class="top5-value">${fmt(item.val)}</span>
     </div>`;
   }).join('') : `<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">Sem dados ainda</div></div>`;
@@ -385,13 +387,16 @@ function render() {
     .filter(x=>x.eq).sort((a,b)=>b.val-a.val);
 
   const top5EqEl = document.getElementById('top5-equipes');
-  top5EqEl.innerHTML = sortedE.length ? sortedE.slice(0,5).map((item,i)=>
-    `<div class="top5-item">
-      <span class="rank-badge ${ri[i]}">${i+1}</span>
+  top5EqEl.innerHTML = sortedE.length ? sortedE.slice(0,5).map((item,i)=>{
+    const medalIcon = i < 3
+      ? `<span style="font-size:22px;line-height:1;flex-shrink:0">${medals[i]}</span>`
+      : `<span class="rank-badge rank-other">${medals[i]}</span>`;
+    return `<div class="top5-item">
+      ${medalIcon}
       <span class="top5-name">${item.eq.nome}</span>
       <span class="top5-value">${fmt(item.val)}</span>
-    </div>`
-  ).join('') : `<div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-text">Sem dados ainda</div></div>`;
+    </div>`;
+  }).join('') : `<div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-text">Sem dados ainda</div></div>`;
 
   if (sortedE.length) renderChartEquipes(sortedE.map(x=>x.eq.nome), sortedE.map(x=>x.val));
 }
