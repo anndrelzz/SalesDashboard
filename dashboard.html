@@ -48,7 +48,7 @@
   .db-loading-text { font-family:'Bebas Neue',sans-serif; font-size:14px; letter-spacing:3px; color:var(--text-muted); }
 
   /* NAVBAR */
-  nav { background:var(--surface); border-bottom:1px solid var(--border-red); padding:0 20px; display:flex; align-items:center; gap:14px; height:88px; position:relative; z-index:10; flex-shrink:0; }
+  nav { background:var(--surface); border-bottom:1px solid var(--border-red); padding:0 20px; display:flex; align-items:center; gap:14px; height:96px; position:relative; z-index:10; flex-shrink:0; }
   nav::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--red) 0%,transparent 100%); }
   .nav-logo { display:flex; align-items:center; flex-shrink:0; }
   .nav-logo svg { height:38px; width:auto; }
@@ -64,19 +64,19 @@
   .progress-bar::after { content:''; position:absolute; right:-1px; top:-2px; bottom:-2px; width:3px; background:#fff; border-radius:2px; box-shadow:0 0 8px var(--red); }
 
   /* MARKET CARD */
-  .nav-market-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 18px; display:flex; flex-direction:column; gap:8px; flex:1; min-width:0; }
+  .nav-market-card { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 12px; display:flex; flex-direction:column; gap:4px; flex:1; min-width:0; }
   .market-label { font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); }
-  .market-items { display:flex; gap:22px; overflow-x:auto; scrollbar-width:none; align-items:flex-start; }
+  .market-items { display:flex; gap:0; justify-content:space-evenly; overflow-x:auto; scrollbar-width:none; align-items:flex-start; }
   .market-items::-webkit-scrollbar { display:none; }
   .market-item { display:flex; flex-direction:column; gap:2px; flex-shrink:0; }
   .market-item-name { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); }
-  .market-item-value { font-family:'Bebas Neue',sans-serif; font-size:20px; color:var(--text); letter-spacing:0.5px; line-height:1; }
+  .market-item-value { font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--text); letter-spacing:0.5px; line-height:1; }
   .market-item-value.up { color:#22C55E; }
   .market-item-value.down { color:var(--red); }
   .market-item-change { font-size:10px; font-weight:700; }
   .market-item-change.up { color:#22C55E; }
   .market-item-change.down { color:var(--red); }
-  .market-divider { width:1px; background:var(--border); flex-shrink:0; align-self:stretch; margin:0 4px; }
+  .market-divider { width:1px; background:var(--border); flex-shrink:0; align-self:stretch; margin:0 2px; }
   .market-section-label { font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-dim); align-self:center; writing-mode:vertical-lr; transform:rotate(180deg); }
   .market-loading { font-size:10px; color:var(--text-dim); letter-spacing:1px; }
 
@@ -104,8 +104,9 @@
     width: 130px;
   }
   .nav-month-input::-webkit-calendar-picker-indicator { filter: invert(1) opacity(0.5); cursor: pointer; }
-  .clock-time { font-family:'Bebas Neue',sans-serif; font-size:38px; letter-spacing:4px; color:var(--text); line-height:1; }
-  .clock-date { font-size:10px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
+  .nav-clock { background:var(--surface2); border:1px solid var(--border-red); border-radius:10px; padding:8px 18px; display:flex; flex-direction:column; align-items:center; gap:2px; flex-shrink:0; }
+  .clock-time { font-family:'Bebas Neue',sans-serif; font-size:56px; letter-spacing:5px; color:var(--text); line-height:1; }
+  .clock-date { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); white-space:nowrap; }
   .lock-btn { display:flex; align-items:center; justify-content:center; width:36px; height:36px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; cursor:pointer; transition:all .15s; flex-shrink:0; text-decoration:none; }
   .lock-btn:hover { border-color:var(--border-red); background:var(--red-subtle); }
   .lock-btn svg { width:15px; height:15px; stroke:var(--text-muted); transition:stroke .15s; }
