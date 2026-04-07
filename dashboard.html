@@ -483,9 +483,11 @@ function render() {
     wrap.style.height = visibleH + 'px';
 
     const canvas = document.getElementById('chart-vendedores');
+    if (chartV) chartV.destroy();
+    canvas.width = wrap.clientWidth;
+    canvas.height = totalH;
     canvas.style.height = totalH + 'px';
     canvas.style.width = '100%';
-    if (chartV) chartV.destroy();
 
     // Calcula imovel e veiculo por vendedor
     const tVI = {}, tVV = {};
