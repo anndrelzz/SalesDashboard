@@ -503,9 +503,36 @@ function render() {
       return [nome, emp, niv].filter(Boolean).join(' · ');
     });
 
+    const totalBarLabelPlugin = {
+      id: 'totalBarLabel',
+      afterDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+        const xScale = chart.scales.x;
+        const yScale = chart.scales.y;
+        ctx.save();
+        ctx.font = "700 20px 'Bebas Neue'";
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = 'rgba(0,0,0,1)';
+        ctx.shadowBlur = 8;
+        sv.forEach((item, i) => {
+          const total = item.val;
+          if (!total) return;
+          const y = yScale.getPixelForValue(i);
+          const xStart = xScale.getPixelForValue(0);
+          const xEnd = xScale.getPixelForValue(total);
+          const xCenter = (xStart + xEnd) / 2;
+          const label = 'R$ ' + Number(total).toLocaleString('pt-BR', {minimumFractionDigits:0, maximumFractionDigits:0});
+          ctx.fillText(label, xCenter, y);
+        });
+        ctx.restore();
+      }
+    };
+
     chartV = new Chart(canvas, {
       type: 'bar',
-      plugins: [ChartDataLabels],
+      plugins: [ChartDataLabels, totalBarLabelPlugin],
       data: {
         labels: nomeLabel,
         datasets: [
@@ -516,20 +543,7 @@ function render() {
             borderRadius: { topLeft:4, bottomLeft:4, topRight:0, bottomRight:0 },
             barThickness: 38,
             stack: 'total',
-            datalabels: {
-              anchor: 'center',
-              align: 'center',
-              clamp: true,
-              color: '#FFFFFF',
-              font: { family: "'Bebas Neue'", weight: '700', size: 20 },
-              textShadowColor: 'rgba(0,0,0,1)',
-              textShadowBlur: 8,
-              formatter: (v, c) => {
-                const total = sv[c.dataIndex]?.val || 0;
-                if (!total) return '';
-                return 'R$ ' + Number(total).toLocaleString('pt-BR', {minimumFractionDigits:0, maximumFractionDigits:0});
-              }
-            }
+            datalabels: { display: false }
           },
           {
             label: 'Veículo',
